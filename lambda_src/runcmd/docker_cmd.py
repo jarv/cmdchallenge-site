@@ -1,0 +1,1 @@
+../../../cmdchallenge/bin/docker_cmd.py

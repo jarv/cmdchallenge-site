@@ -1,0 +1,1 @@
+../../../cmdchallenge/bin/challenge.py
