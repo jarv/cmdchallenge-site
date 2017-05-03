@@ -1,0 +1,62 @@
+{
+  "name": "xterm",
+  "version": "2.2.3",
+  "ignore": [
+    "demo",
+    "test",
+    ".gitignore"
+  ],
+  "main": "lib/xterm.js",
+  "repository": "https://github.com/sourcelair/xterm.js",
+  "license": "MIT",
+  "files": [
+    "dist/*.css",
+    "dist/**/*.css",
+    "dist/*.js",
+    "dist/*.js.map",
+    "dist/**/*.js",
+    "dist/**/*.js.map",
+    "lib/*.css",
+    "lib/**/*.css",
+    "lib/*.js",
+    "lib/*.js.map",
+    "lib/**/*.js",
+    "lib/**/*.js.map",
+    "src/*.css",
+    "src/**/*.css",
+    "src/*.js",
+    "src/*.js.map",
+    "src/*.ts",
+    "src/**/*.js",
+    "src/**/*.js.map",
+    "src/**/*.ts"
+  ],
+  "devDependencies": {
+    "@types/chai": "^3.4.34",
+    "@types/mocha": "^2.2.33",
+    "@types/node": "^6.0.41",
+    "browserify": "^13.1.0",
+    "chai": "3.5.0",
+    "docdash": "0.4.0",
+    "exorcist": "^0.4.0",
+    "express": "4.13.4",
+    "express-ws": "2.0.0-rc.1",
+    "glob": "^7.0.5",
+    "jsdoc": "3.4.3",
+    "mocha": "2.5.3",
+    "nodemon": "1.10.2",
+    "pty.js": "0.3.1",
+    "sleep": "^3.0.1",
+    "sorcery": "^0.10.0",
+    "tslint": "^4.0.2",
+    "typescript": "^2.0.3"
+  },
+  "scripts": {
+    "start": "nodemon --watch src --watch addons --watch demo --exec bash -c './bin/build && node demo/app'",
+    "lint": "tslint src/**/*.ts",
+    "test": "mocha --recursive ./lib",
+    "build:docs": "jsdoc -c jsdoc.json",
+    "build": "./bin/build",
+    "prepublish": "tsc"
+  }
+}

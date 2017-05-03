@@ -1,0 +1,243 @@
+@charset "UTF-8";
+body {
+  -webkit-font-smoothing: antialiased;
+  background-color: white;
+  color: #333;
+  font-family: "Helvetica Neue", Helvetica, Roboto, Arial, sans-serif;
+  font-size: 1em;
+  line-height: 1.5; }
+
+a { text-decoration: none; }
+a:active, a:focus { outline: none; }
+
+table {
+  border-collapse: collapse;
+  margin: 0.75em 0;
+  table-layout: fixed;
+  width: 100%; }
+
+tr,
+td,
+th {
+  vertical-align: middle; }
+
+@font-face {
+  font-family: "pressStart";
+  src: url("fonts/PressStart2P-Regular.ttf"); }
+@font-face {
+  font-family: "vador";
+  src: url("fonts/vador.ttf"); }
+table, caption, tbody, tfoot, thead, tr, th, td {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  vertical-align: baseline;
+  background: transparent;
+  text-align: left; }
+
+td {
+  text-align: right; }
+
+body {
+  margin: 0px;
+  background-color: #1a1a1a;
+  z-index: -500;
+  font-family: "pressStart"; }
+
+input[type="submit"], input[type="text"] {
+  line-height: normal !important; }
+
+a {
+  color: #cccc00; }
+
+a:hover {
+  color: yellow; }
+
+div.status {
+  position: relative;
+  width: 800px;
+  margin: 0px auto;
+  text-align: left;
+  font-family: "pressStart";
+  font-size: 12px;
+  color: #b3b3b3;
+  padding-top: 5px;
+  border: 1px solid black;
+  background-color: #191c58;
+  margin-top: 5%;
+  text-align: center;
+  font-size: 24px;
+  border: 0px; }
+  div.status div.statuses {
+    position: absolute;
+    top: 0px;
+    font-size: 12px;
+    padding-top: 5px;
+    width: 20%; }
+  div.status div.points-wrapper {
+    left: 0px;
+    text-align: left;
+    padding-left: 10px; }
+  div.status div.lives-wrapper {
+    right: 0px;
+    text-align: right;
+    padding-right: 10px; }
+  div.status div.logo a {
+    color: white; }
+  div.status div.social {
+    font-size: 12px;
+    color: black; }
+    div.status div.social a {
+      margin: 0px;
+      padding: 0px;
+      font-size: 12px; }
+  div.status div.sound {
+    font-size: 10px; }
+
+.content {
+  width: 800px;
+  margin: 0px auto;
+  position: relative; }
+  .content div#breakout {
+    position: relative;
+    width: 100%;
+    height: 300px;
+    background-color: black; }
+  .content div#msg-flash {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    margin: 0px auto;
+    z-index: 10000;
+    text-align: center;
+    opacity: .6;
+    padding: 10px;
+    font-family: "pressStart";
+    margin-top: 2em;
+    color: white;
+    font-size: 24px;}
+  .content .splash {
+    margin: 0px auto;
+    font-family: "vador";
+    z-index: 800;
+    width: 60%;
+    text-align: center;
+    background-color: #4248c8;
+    opacity: .8;
+    padding: 10px;
+    text-shadow: -1px 0 #336a33, 0 1px #336a33, 1px 0 #336a33, 0 -1px #336a33;
+    display: none; }
+    .content .splash .title {
+      font-family: "vador";
+      font-size: 3em;
+      font-weight: bold;
+      color: #00ff00;
+      text-shadow: 4px 4px black; }
+    .content .splash input[name="str"] {
+      border-radius: 0px;
+      background-color: white;
+      color: gray;
+      width: 60%;
+      height: 30px;
+      display: inline-block;
+      font-family: "pressStart";
+      font-size: 12px;
+      border: 0; }
+    .content .splash button {
+      margin: 0px;
+      vertical-align: top;
+      text-align: center;
+      width: 80px;
+      display: inline-block;
+      height: 30px;
+      overflow: hidden;
+      font-family: "pressStart";
+      font-size: 10px;
+      border-radius: 0px;
+      color: #00ff00;
+      background-color: #477dca; }
+    .content .splash button:hover {
+      background-color: #3264ac; }
+    .content .splash div.font-disp {
+      margin: 0px;
+      margin-bottom: 4px;
+      color: #00ff00;
+      text-shadow: none; }
+    .content .splash div.instructions {
+      color: black;
+      text-shadow: none;
+      font-family: "pressStart";
+      font-size: 10px;
+      background-color: #4a50ca;
+      padding: 10px; }
+    .content .splash div.social-links, .content .splash div.twitter-share {
+      background-color: black;
+      text-shadow: none;
+      font-size: 14px;
+      color: white;
+      text-shadow: none; }
+      .content .splash div.social-links div.share-link, .content .splash div.twitter-share div.share-link {
+        padding-top: 4px;
+        overflow: hidden; }
+      .content .splash div.social-links a, .content .splash div.twitter-share a {
+        text-shadow: none;
+        margin: 0px;
+        padding: 0px;
+        font-size: 12px; }
+    .content .splash .rangeslider,
+    .content .splash .rangeslider__fill {
+      background: #477dca;
+      display: block;
+      height: 30px;
+      width: 60%;
+      margin-right: auto;
+      margin-left: auto;
+      margin-bottom: 10px;
+      -moz-box-shadow: inset 0px 1px 3px rgba(0, 0, 0, 0.3);
+      -webkit-box-shadow: inset 0px 1px 3px rgba(0, 0, 0, 0.3);
+      box-shadow: inset 0px 1px 3px rgba(0, 0, 0, 0.3); }
+    .content .splash .rangeslider {
+      position: relative; }
+    .content .splash .rangeslider--disabled {
+      filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=40);
+      opacity: 0.4; }
+    .content .splash .rangeslider__fill {
+      background: #6f99d5;
+      position: absolute;
+      top: 0; }
+    .content .splash .rangeslider__handle {
+      background: #009900;
+      cursor: pointer;
+      display: inline-block;
+      width: 40px;
+      height: 30px;
+      position: absolute;
+      top: 0px;
+      outline: 1px solid gray;
+      font-size: 24px;
+      font-weight: normal;
+      color: black;
+      text-shadow: none;
+      overflow: hidden; }
+    .content .splash .rangeslider__handle:after {
+      content: "";
+      display: block;
+      width: 18px;
+      height: 18px;
+      margin: auto;
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0; }
+    .content .splash input[type="range"]:focus + .rangeslider .rangeslider__handle {
+      -moz-box-shadow: 0 0 8px rgba(255, 0, 255, 0.9);
+      -webkit-box-shadow: 0 0 8px rgba(255, 0, 255, 0.9);
+      box-shadow: 0 0 8px rgba(255, 0, 255, 0.9); }
+    .content .splash .rangeslider__handle:hover {
+      background: #00ff00; }
+
+/*# sourceMappingURL=ascii-breakout.css.map */

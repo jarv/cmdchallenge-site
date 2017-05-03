@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>figlet-breakout</title>
+    <meta name="description" content="play breakout in the browser">
+    <link rel="stylesheet" href="css/animate.min.css">
+    <link rel="stylesheet" href="css/figlet-breakout-src.css">
+  </head>
+  <body>
+    <!--[if lt IE 7]>
+        <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+    <![endif]-->
+    <div class="status"> 
+      <div class="statuses points-wrapper">
+        <table>
+          <tr><td>points:</td><td id="points">0</td></tr>
+          <tr><td>bonus: </td><td id="bonus-multiplier">1x</td></tr>
+        </table>
+      </div> 
+      <div class="sound">sound <span id="sound-toggle">OFF</span> (press s to toggle)</div>
+      <div class="social"><a href="https://twitter.com/thecmdchallenge">@cmdchallenge</a> / <a href="https://github.com/jarv/figlet-breakout">github</a></div>
+      <div class="statuses lives-wrapper">
+        <table>
+          <tr><td>lives:</td><td id="lives">0</td></tr>
+          <tr><td>bonuses:</td><td id="bonuses">0</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="content">
+        <div id="msg-flash"></div>
+        <div id="breakout"></div>
+    </div>
+    <script src="bower_components/lodash/dist/lodash.min.js"></script>
+    <script src="bower_components/howler.js/dist/howler.min.js"></script>
+    <script src="bower_components/routie/dist/routie.min.js"></script>
+    <script src="js/figlet-src.js"></script>
+    <script src="js/figlet-breakout-src.js"></script>
+    <script>
+      WebFontConfig = { custom : { families: ['pressStart']},
+        active: function () { (function(s,m) {
+          s = document.createElement('script'); s.src = 'js/figlet-breakout-src.js';
+          s.type = 'text/javascript'; m = document.getElementsByTagName('script')[0];
+          m.parentNode.insertBefore(s, m);
+          })();
+        },
+      }
+    </script>
+    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+  </body>
+</html>

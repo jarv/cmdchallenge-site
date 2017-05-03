@@ -1,0 +1,3 @@
+[submodule "cmdchallenge"]
+	path = cmdchallenge
+	url = https://github.com/jarv/cmdchallenge

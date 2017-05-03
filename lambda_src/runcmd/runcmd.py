@@ -7,6 +7,7 @@ import time
 import boto3
 import random
 import re
+from os import environ
 from cgi import escape
 from challenge import verify_result, value_tests_rand_result, value_output_rand_result, value_rand_pass
 from challenge import bool_to_int_dyn
@@ -17,11 +18,7 @@ from dynamo import raise_on_rate_limit, DynamoValidationError
 
 LOG = logging.getLogger()
 LOG.setLevel(logging.WARN)
-DOCKER_HOSTS = [
-    # 'ec2-54-196-163-3.compute-1.amazonaws.com'
-    # 'ec2-54-197-23-185.compute-1.amazonaws.com'
-    'ec2-34-204-96-63.compute-1.amazonaws.com'
-]
+DOCKER_HOST = environ['DOCKER_EC2_DNS']
 MAX_OUTPUT_LEN = 10000
 SLACK_SNS_ARN = 'arn:aws:sns:us-east-1:414252096707:cmdchallenge-slack'
 
@@ -182,7 +179,7 @@ def handler(event, context):
         try:
             result = output_from_cmd(
                 cmd, challenge, docker_version='1.23',
-                docker_base_url='https://{}:2376'.format(random.choice(DOCKER_HOSTS)), tls_settings=tls_settings)
+                docker_base_url='https://{}:2376'.format(DOCKER_HOST), tls_settings=tls_settings)
             LOG.warn("Got result {} for command '{}' with hash '{}'".format(result, cmd, hashed_submission))
             return_code = result['CmdExitCode']
             output = result['CmdOut'].rstrip()

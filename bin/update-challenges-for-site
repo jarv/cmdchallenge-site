@@ -1,0 +1,4 @@
+#!/bin/bash
+set -e
+dir=$(dirname $0)
+cp $dir/../cmdchallenge/ro_volume/ch/challenges.json $dir/../static/challenges/challenges.json

@@ -1,0 +1,45 @@
+{
+  "resources": [
+    "mygameaudio.ogg",
+    "mygameaudio.m4a",
+    "mygameaudio.mp3",
+    "mygameaudio.ac3"
+  ],
+  "spritemap": {
+    "bounce": {
+      "start": 0,
+      "end": 0.06360544217687075,
+      "loop": false
+    },
+    "death": {
+      "start": 2,
+      "end": 2.5971655328798184,
+      "loop": false
+    },
+    "hit": {
+      "start": 4,
+      "end": 4.033922902494331,
+      "loop": false
+    },
+    "paddle": {
+      "start": 6,
+      "end": 6.081541950113379,
+      "loop": false
+    },
+    "pause": {
+      "start": 8,
+      "end": 8.439818594104308,
+      "loop": false
+    },
+    "unpause": {
+      "start": 10,
+      "end": 10.439818594104308,
+      "loop": false
+    },
+    "upgrade": {
+      "start": 12,
+      "end": 12.297142857142857,
+      "loop": false
+    }
+  }
+}

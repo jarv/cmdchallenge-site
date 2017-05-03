@@ -1,0 +1,45 @@
+#!/usr/bin/python
+from __future__ import print_function
+import SimpleHTTPServer
+import SocketServer
+import os
+from tempfile import mkstemp
+import re
+import shutil
+import sys
+
+
+def replace_line_in_file(path, match, replace):
+    fh, tmp_path = mkstemp()
+    with open(tmp_path, "w") as tmp_f:
+        js_path = os.path.join(DIR, "../static/js/local.js")
+        with open(js_path) as old_f:
+            tmp_f.write(re.sub(match, replace, old_f.read(), flags=re.MULTILINE))
+    shutil.move(tmp_path, js_path)
+
+
+PORT = 8000
+DIR = os.path.abspath(os.path.dirname(__file__))
+Handler = SimpleHTTPServer.SimpleHTTPRequestHandler
+httpd = SocketServer.TCPServer(("127.0.0.1", PORT), Handler)
+if len(sys.argv) > 1:
+    env = sys.argv[1]
+else:
+    env = "default"
+try:
+    endpoint_path = os.path.join(DIR, "../terraform/{}-runcmd-api-gateway-endpoint".format(env))
+    endpoint = open(endpoint_path).read().rstrip()
+except IOError:
+    print("Unable to open endpoint file: {}".format(endpoint_path))
+    sys.exit(1)
+
+js_path = os.path.join(DIR, "../static/js/local.js")
+replace_line_in_file(js_path, '^var CMD_URL = ""', 'var CMD_URL = "{}"'.format(endpoint))
+print("Using endpoint: {}".format(endpoint))
+print("Serving content at port", PORT)
+os.chdir(os.path.join(DIR, "../static"))
+try:
+    httpd.serve_forever()
+except KeyboardInterrupt:
+    replace_line_in_file(js_path, '^var CMD_URL = ".*?"', 'var CMD_URL = ""'.format(endpoint))
+    print("Cleaning up!")

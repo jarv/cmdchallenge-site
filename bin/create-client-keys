@@ -1,0 +1,23 @@
+#!/bin/bash
+set -e
+dir=$(dirname $0)
+key_dir="${dir}/../private/client"
+if [[ -d "$key_dir" ]]; then
+    echo "$key_dir already exists, not doing anything"
+    exit 0
+fi
+mkdir -p "${key_dir}"
+cd "${key_dir}"
+
+echo Create the client key and CSR
+openssl genrsa -out key.pem 4096
+openssl req -subj '/CN=client' -new -key key.pem -out client.csr
+
+echo Sign the client cert
+echo extendedKeyUsage = clientAuth > extfile.cnf
+openssl x509 -req -days 365 -sha256 -in client.csr -CA ../ca/ca.pem -CAkey ../ca/ca-key.pem \
+  -CAcreateserial -out cert.pem -extfile extfile.cnf
+
+chmod -v 0600 key.pem
+chmod -v 0644 cert.pem
+rm -v client.csr

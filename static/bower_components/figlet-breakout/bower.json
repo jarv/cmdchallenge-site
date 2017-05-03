@@ -1,0 +1,24 @@
+{
+  "name": "figlet-breakout",
+  "version": "1.0.0",
+  "homepage": "https://github.com/jarv/figlet-breakout",
+  "authors": [
+    "John Jarvis <john@jarv.org>"
+  ],
+  "description": "Create a breakout game with figlet fonts",
+  "main": [
+    "js/figlet-breakout.js"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "howler.js": "howler#^2.0.2",
+    "lodash": "^4.17.4"
+  }
+}

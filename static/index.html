@@ -1,0 +1,91 @@
+<html class="no-js" lang="">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="css/animate.min.css">
+    <link rel="stylesheet" href="css/normalize.min.css">
+    <link rel="stylesheet" href="css/main.css">
+    <title>Commandline Challenge</title>
+    <script src="js/vendor/modernizr-2.8.3.min.js"></script>
+    <link rel="stylesheet" href="css/cmdchallenge.css">
+    <link rel="stylesheet" href="css/jquery.terminal-1.0.5.min.css" />
+  </head>
+  <body>
+      <!--[if lt IE 8]>
+          <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+      <![endif]-->
+      <noscript>
+          It looks like you don't have javascript enabled.
+          If it helps to convince you to enable it there is no third-party js on this site
+          and no trackers except for google analytics that can be blocked with a browser addon. Thanks!
+      </noscript>
+
+      <div class="wrapper">
+        <div class="navbar">
+          <ul>
+            <li><a href="https://about.cmdchallenge.com">about</a></li>
+            <li><a href="https://github.com/jarv/cmdchallenge">github</a></li>
+            <li><a href="https://github.com/jarv/cmdchallenge/issues/new">report an issue</a></li>
+            <li><a id="reset" href="#">reset</a></li>
+            <li><a href="https://twitter.com/thecmdchallenge">twitter</a></li>
+            <li><a href="mailto:info@cmdchallenge.com">contact</a></li>
+          </ul>
+        </div>
+        <div id="header"><div class="challenge" onclick="location.href='/';" style="cursor: pointer;"> _____ _____ ____     _____ _____ _____ __    __    _____ _____ _____ _____ 
+|     |     |    \   |     |  |  |  _  |  |  |  |  |   __|   | |   __|   __|
+|   --| | | |  |  |  |   --|     |     |  |__|  |__|   __| | | |  |  |   __|
+|_____|_|_|_|____/   |_____|__|__|__|__|_____|_____|_____|_|___|_____|_____|</div></div>
+        <div class="sound">sound <span id="sound-toggle">OFF</span> (press s to toggle)</div>
+        <div id="breakout-box">
+            <div id="breakout"></div>
+            <div id="msg-flash"></div>
+        </div>
+        <div id="badges">
+          <div class="badge_box">
+            <ul>
+              <li id="b1">^‿^</li>
+              <li id="b2">¯\_(ツ)_/¯</li>
+              <li id="b3">ʘ‿ʘ</li>
+              <li id="b4">♥‿♥</li>
+              <li id="b5">(◕‿◕)</li>
+              <li id="b6">( ͡° ͜ʖ ͡° )</li>
+            </ul>
+          </div>
+          <div class="under_badge_wrapper"><div id="badge_text"></div><div id="error_text"></div></div>
+        </div>
+        <div id="term_challenge" style="padding: 0;"></div>
+        <div class="solutions"><span>~~</span> See <a id="solution" href="/s/#/hello_world">user submitted solutions</a> for this challenge <span>~~</span></div>
+        <div class="challenge-box">
+          <h2>Challenges</h2>
+          <ul class="challenges" id="challenges">
+          </ul>
+          <h2>User Contributed Challenges</h2>
+          <ul class="challenges" id="user-challenges">
+          </ul>
+        </div>
+      </div>
+      <script src="js/deps.min.js"></script>
+      <script>keyboardeventKeyPolyfill.polyfill();</script>
+      <script>
+        WebFontConfig = { custom : { families: ['pressStart'] },
+          active: function () { (function(s,m) {
+            s = document.createElement('script'); s.src = 'js/local.js';
+            s.type = 'text/javascript'; m = document.getElementsByTagName('script')[0];
+            m.parentNode.insertBefore(s, m);})();
+          },
+        }
+      </script>
+      <script src="js/vendor/webfont.js"></script>
+      <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-90967136-1', 'auto');
+        ga('send', 'pageview');
+      </script>
+  </body>
+</html>
