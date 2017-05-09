@@ -31,7 +31,7 @@ by following the 5 steps below.
 
 ## Requirements
 
-Creating your own version of cmdchallenge is extremely simple, there are three prerequisites for your mac or linux workstation:
+Creating your own version of cmdchallenge is simple, there are three prerequisites for your mac or linux workstation:
 
 * terraform ([download the appropriate binary](https://www.terraform.io/downloads.html) and put it in your path)
 * openssl (for generating keys)
