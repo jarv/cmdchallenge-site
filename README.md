@@ -82,13 +82,32 @@ terraform apply
 ```
 
 The process of bringing up all the resources in AWS takes around 4 or 5 minutes.
-At the very end you will have something that looks like the following:
+At the very end you will see some terraform outputs:
+
+
+```
+Outputs:
+
+ami_id = ami-ad593cbb
+ec2_public_ip = 107.23.137.206
+invoke_url = https://9hz0doczmb.execute-api.us-east-1.amazonaws.com/prod
+test_hello_world = curl 'https://9hz0doczmb.execute-api.us-east-1.amazonaws.com/prod/?cmd=echo+hello+world&challenge_slug=hello_world'
+```
+
+Paste the curl command into your terminal to confirm that everything is working:
+
+```
+$ curl 'https://9hz0doczmb.execute-api.us-east-1.amazonaws.com/prod/?cmd=echo+hello+world&challenge_slug=hello_world'
+{"challenge_slug": "hello_world", "rand_error": false, "output": "hello world", "test_errors": null, "return_code": 0, "correct": true}
+```
 
 ### Step 5: Serve assets
 
 ```
 make serve
 ```
+
+Point your browser to http://localhost:8000/
 
 
 
