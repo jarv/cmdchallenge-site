@@ -59,7 +59,7 @@ Your public key has been saved in cmd_rsa.pub.
 ```
 
 This will create a `private/ssh` directory in the repostory root which contains the private and public keypair for the instance used for cmdchallenge.
-This `private/` directory is ignored by github and should be kept safe, don't check it in.
+This `private/` directory is ignored by git and should be kept safe. In addition to the ssh keys it will contain the CA and certificates needed for tls authentication for docker after the terraform run.
 
 ### Step 3: Update the AWS configuration for terraform
 
