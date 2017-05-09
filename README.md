@@ -3,8 +3,8 @@
 This repo contains static assets for the [cmdchallenge.com](https://cmdchallenge.com) website and terraform
 configuration to build it in AWS.
 
-The default terraform configuration creates infrastructure that is within the AWS free tier account.
-This is also the same configuration that is used for the production cmdchallenge site!
+Everything that is built can be run in an AWS free tier account. 
+This is also the same configuration that is used for the production cmdchallenge site.
 With a single terraform run you can have your own version of cmdchallenge running in AWS in less than 5 minutes
 by following the 5 steps below.
 
