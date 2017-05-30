@@ -22,9 +22,9 @@ resource "null_resource" "pre_archive" {
   }
   # Ensure lambda func symlinks point to the keys in the
   # private dir.
-  provisioner "local-exec" {
-    command = "${path.root}/../bin/create-key-symlinks"
-  }
+  # provisioner "local-exec" {
+  #   command = "${path.root}/../bin/create-key-symlinks"
+  # }
   # Stage files that are shared and keys needed for the lambda function
   provisioner "local-exec" {
     command = "cp ${path.root}/../cmdchallenge/bin/challenge.py ${path.root}/../lambda_src/runcmd/challenge.py"
