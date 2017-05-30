@@ -20,30 +20,9 @@ resource "null_resource" "pre_archive" {
   provisioner "local-exec" {
     command = "${path.root}/../bin/create-client-keys"
   }
-  # Ensure lambda func symlinks point to the keys in the
-  # private dir.
-  # provisioner "local-exec" {
-  #   command = "${path.root}/../bin/create-key-symlinks"
-  # }
   # Stage files that are shared and keys needed for the lambda function
   provisioner "local-exec" {
-    command = "cp ${path.root}/../cmdchallenge/bin/challenge.py ${path.root}/../lambda_src/runcmd/challenge.py"
-  }
-  provisioner "local-exec" {
-    command = "cp ${path.root}/../cmdchallenge/bin/docker_cmd.py ${path.root}/../lambda_src/runcmd/docker_cmd.py"
-  }
-  provisioner "local-exec" {
-    command = "cp ${path.root}/../cmdchallenge/ro_volume/ch/* ${path.root}/../lambda_src/runcmd/ch/"
-  }
-
-  provisioner "local-exec" {
-    command = "cp ${path.root}/../private/ca/ca.pem ${path.root}/../lambda_src/runcmd/keys/"
-  }
-  provisioner "local-exec" {
-    command = "cp ${path.root}/../private/client/cert.pem ${path.root}/../lambda_src/runcmd/keys/"
-  }
-  provisioner "local-exec" {
-    command = "cp ${path.root}/../private/client/key.pem ${path.root}/../lambda_src/runcmd/keys/"
+    command = "${path.root}/../bin/copy-files-for-lambda"
   }
 }
 

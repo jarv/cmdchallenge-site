@@ -1,0 +1,19 @@
+#!/bin/bash
+set -e
+dir=$(dirname $0)
+private_dir="${dir}/../private"
+cmdchallenge_dir="${dir}/../cmdchallenge"
+runcmd_src_dir="${dir}/../lambda_src/runcmd"
+
+# common libs
+for f in challenge.py docker_cmd.py; do
+   cp $cmdchallenge_dir/bin/$f $runcmd_src_dir/$f
+done
+
+# challenge json files
+cp $cmdchallenge_dir/ro_volume/ch/* $runcmd_src_dir/ch/
+
+# keys
+cp $private_dir/ca/ca.pem $runcmd_src_dir/keys/ca.pem
+cp $private_dir/client/cert.pem $runcmd_src_dir/keys/cert.pem
+cp $private_dir/client/key.pem $runcmd_src_dir/keys/key.pem
