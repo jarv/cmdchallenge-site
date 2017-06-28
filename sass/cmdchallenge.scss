@@ -36,6 +36,12 @@ $lennyfont: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
   font-family: "pressStart";
   src: url("fonts/PressStart2P-Regular.ttf"); }
 
+// Workaround for min-height issue :(
+.terminal-output div {
+        min-height: 14px;
+}
+// ------------------
+
 noscript {
   color: white;
 }

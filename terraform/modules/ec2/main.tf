@@ -27,7 +27,8 @@ resource "aws_key_pair" "cmdchallenge" {
 }
 
 resource "aws_instance" "runcmd" {
-  ami           = "${data.aws_ami.coreos.id}"
+  # ami           = "${data.aws_ami.coreos.id}"
+  ami = "ami-ad593cbb"
   instance_type = "t2.micro"
   security_groups = ["${aws_security_group.runcmd.name}"]
   key_name = "${aws_key_pair.cmdchallenge.key_name}"

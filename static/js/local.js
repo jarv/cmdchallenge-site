@@ -8,11 +8,11 @@
 /*global _: false*/
 
 var GLOBAL_VERSION = 1; // for cache busting
-var CMD_URL = "";
+var CMD_URL = "https://q3pilyv6xh.execute-api.us-east-1.amazonaws.com/prod";
 var TAB_COMPLETION = ["war_and_peace.txt", "sum-me.txt", "find", "echo",
                       "awk", "sed", "perl", "wc", "grep", "access.log",
                       "cat", "sort", "README", "split-me.txt", "file-with-tabs.txt",
-                      "cut", "faces.txt"];
+                      "cut", "faces.txt", "random-numbers.txt", "table.csv"];
 var STORAGE_CORRECT = "correct_answers";
 var BADGE_MSGS = {
   b0: "Are you up for the command line challenge? Solve the tasks printed below in a single line of bash.",
@@ -38,11 +38,21 @@ jQuery(function($) {
   var ret_code;
   var reset_el;
   var cmdchallenges;
+	var less = false;
   // Functions
   var get_challenges, send_command, initialize_challenges, colorize, underline_current,
       add_class, remove_class, get_array_from_storage, add_item_to_storage, update_checkmarks,
       add_event_listener, get_next_challenge, color_badges, update_badges, check_for_win,
-      update_error_text;
+      update_error_text, page_output, term_clear;
+
+	term_clear = function() {
+		if (current_challenge && !less) {
+			ret_code = colorize("0", "green");
+			current_challenge.description.split(/\n/).forEach(function(l) {
+				term.echo(colorize("# " + l, "teal"));
+			});
+		}
+	};
 
   get_array_from_storage = function(storage_name) {
     var ids;
@@ -298,7 +308,91 @@ jQuery(function($) {
     }
     return challenges[0];
   };
-	
+
+	page_output = function(output) {
+		var source = output, export_data;
+		var rows, resize, lines;
+		var print, pos = 0;
+		var i = 0;
+		var regex;
+		less = true;
+		print = function() {
+			term.clear();
+			term.echo(lines.slice(pos, pos+rows-1).join('\n'));
+		};
+		term.resume();
+		export_data = term.export_view();
+		rows = term.rows();
+		resize = [];
+		lines = source.split('\n');
+		console.log(lines);
+		resize.push(function() {
+			if (less) {
+				rows = term.rows();
+				print();
+			}
+		});
+		print();
+		term.push($.noop, {
+			keydown: function(e) {
+				if (term.get_prompt() !== '/') {
+					if (e.which === 191) {
+						term.set_prompt('/');
+					} else if (e.which === 38 || e.which === 75) { // up
+						if (pos > 0) {
+							--pos;
+							print();
+						}
+					} else if (e.which === 40 || e.which === 74) { // down
+						if (pos < lines.length-1) {
+							++pos;
+							print();
+						}
+					} else if (e.which === 34 || e.which === 32) { // Page down
+						pos += rows;
+						if (pos > lines.length-1-rows) {
+							pos = lines.length-1-rows;
+						}
+						print();
+					} else if (e.which === 33) { // Page up
+						pos -= rows;
+						if (pos < 0) {
+							pos = 0;
+						}
+						print();
+					} else if (e.which === 81) { // q
+						less = false;
+						term.pop().import_view(export_data);
+					}
+					return false;
+				}
+
+				if (e.which === 8 && term.get_command() === '') {
+					term.set_prompt(':');
+				} else if (e.which === 13) {
+					var command = term.get_command();
+					// basic search find only first
+					// instance and don't mark the result
+					if (command.length > 0) {
+						regex = new RegExp(command);
+						for (i=0; i<lines.length; ++i) {
+							if (regex.test(lines[i])) {
+								pos = i;
+								print();
+								term.set_command('');
+								break;
+							}
+						}
+						term.set_command('');
+						term.set_prompt(':');
+					}
+					return false;
+				}
+			},
+			prompt: ':'
+		});
+	};
+
   // main
 
 	reset_el = document.getElementById("reset");
@@ -319,7 +413,9 @@ jQuery(function($) {
     update_badges();
 
     $('#term_challenge').terminal(function(command, term) {
-      if (command !== '') {
+			// Remove beginning and trailing whitespace
+			command = command.replace(/^\s+|\s+$/g, '');
+			if (command !== '') {
         term.pause();
         send_command(command, function(resp) {
           if (resp.return_code === 0) {
@@ -327,7 +423,11 @@ jQuery(function($) {
           } else {
             ret_code = colorize(resp.return_code, "red");
           }
-          term.echo(resp.output);
+					if (command.match(/^man +[^ ]+/)) {
+						page_output(resp.output);
+					} else {
+						term.echo(resp.output);
+					}
           if (resp.correct) {
             term.echo(colorize("# 👍 👍 👍  Correct!", "green"));
             add_item_to_storage(resp.challenge_slug, STORAGE_CORRECT, function() {
@@ -365,14 +465,7 @@ jQuery(function($) {
         callback("bash(" + ret_code + ")> ");
       },
       completion: TAB_COMPLETION,
-      onClear: function() {
-        if (current_challenge) {
-          ret_code = colorize("0", "green");
-          current_challenge.description.split(/\n/).forEach(function(l) {
-            term.echo(colorize("# " + l, "teal"));
-          });
-        }
-      }
+      onClear: term_clear
     });
     term = $.terminal.active();
     initialize_challenges(challenges, term, function() {
