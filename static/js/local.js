@@ -8,7 +8,7 @@
 /*global _: false*/
 
 var GLOBAL_VERSION = 1; // for cache busting
-var CMD_URL = "https://q3pilyv6xh.execute-api.us-east-1.amazonaws.com/prod";
+var CMD_URL = "";
 var TAB_COMPLETION = ["war_and_peace.txt", "sum-me.txt", "find", "echo",
                       "awk", "sed", "perl", "wc", "grep", "access.log",
                       "cat", "sort", "README", "split-me.txt", "file-with-tabs.txt",
