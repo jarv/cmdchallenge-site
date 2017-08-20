@@ -23,5 +23,5 @@ sudo systemctl restart docker-cleanup.timer
 sudo systemctl stop docker
 sudo systemctl start docker-tls-tcp.socket
 sudo systemctl start docker
-docker pull cmdchallenge/cmdchallenge
+docker pull registry.gitlab.com/jarv/cmdchallenge
 # sudo reboot
