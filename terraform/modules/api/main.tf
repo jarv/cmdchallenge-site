@@ -36,11 +36,11 @@ resource "aws_api_gateway_deployment" "runcmd_deploy" {
   rest_api_id = "${aws_api_gateway_rest_api.runcmd_api.id}"
   stage_name = "prod"
   provisioner "local-exec" {
-    command = "echo ${aws_api_gateway_deployment.runcmd_deploy.invoke_url} > ${path.root}/${terraform.env}-runcmd-api-gateway-endpoint" 
+    command = "echo ${aws_api_gateway_deployment.runcmd_deploy.invoke_url} > ${path.root}/${terraform.env}-runcmd-api-gateway-endpoint"
   }
   provisioner "local-exec" {
     when = "destroy"
-    command = "rm -f ${path.root}/${terraform.env}-runcmd-api-gateway-endpoint" 
+    command = "rm -f ${path.root}/${terraform.env}-runcmd-api-gateway-endpoint"
   }
 }
 
