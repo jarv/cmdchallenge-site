@@ -9,10 +9,11 @@
  *
  * This is example of how to create custom formatter for jQuery Terminal
  *
- * Copyright (c) 2014-2017 Jakub Jankiewicz <http://jcubic.pl>
+ * Copyright (c) 2014-2017 Jakub Jankiewicz <http://jcubic.pl/me>
  * Released under the MIT license
  *
  */
+/* global jQuery */
 (function($) {
     if (!$.terminal) {
         throw new Error('$.terminal is not defined');

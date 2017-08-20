@@ -4,15 +4,17 @@
   __ / // // // // // _  // _// // / / // _  // _//     // //  \/ // _ \/ /
  /  / // // // // // ___// / / // / / // ___// / / / / // // /\  // // / /__
  \___//____ \\___//____//_/ _\_  / /_//____//_/ /_/ /_//_//_/ /_/ \__\_\___/
-           \/              /____/                              version 1.0.5
+           \/              /____/                              version 1.6.2
 ```
 http://terminal.jcubic.pl
 
-[![npm](https://img.shields.io/badge/npm-1.0.5-blue.svg)](https://www.npmjs.com/package/jquery.terminal)
-![bower](https://img.shields.io/badge/bower-1.0.5-yellow.svg)
+[![npm](https://img.shields.io/badge/npm-1.6.2-blue.svg)](https://www.npmjs.com/package/jquery.terminal)
+![bower](https://img.shields.io/badge/bower-1.6.2-yellow.svg)
 [![Gitter chat](https://badges.gitter.im/jcubic/jquery.terminal.png)](https://gitter.im/jcubic/jquery.terminal)
 [![travis](https://travis-ci.org/jcubic/jquery.terminal.svg?branch=master)](https://travis-ci.org/jcubic/jquery.terminal)
-[![Coverage Status](https://coveralls.io/repos/github/jcubic/jquery.terminal/badge.svg?branch=master)](https://coveralls.io/github/jcubic/jquery.terminal?branch=master)
+[![Known Vulnerabilities](https://snyk.io/test/npm/jquery.terminal/badge.svg)](https://snyk.io/test/npm/jquery.terminal)
+[![Coverage Status](https://coveralls.io/repos/github/jcubic/jquery.terminal/badge.svg?branch=master&8cb2fec3e0e61160522033fd92b4b8ab)](https://coveralls.io/github/jcubic/jquery.terminal?branch=master)
+![downloads](https://img.shields.io/npm/dm/jquery.terminal.svg?style=flat)
 [![package quality](http://npm.packagequality.com/shield/jquery.terminal.svg)](http://packagequality.com/#?package=jquery.terminal)
 
 
@@ -72,13 +74,11 @@ npm install --save jquery.terminal
 Include jQuery library, you can use cdn from http://jquery.com/download/
 
 
-Then include js/jquery.terminal-1.0.5.min.js and css/jquery.terminal-1.0.5.css
-You can also include js/jquery.mousewheel-min.js
+Then include js/jquery.terminal-1.6.2.min.js and css/jquery.terminal-1.6.2.css
 
 ```html
-<script src="js/jquery.terminal-1.0.5.min.js"></script>
-<script src="js/jquery.mousewheel-min.js"></script>
-<link href="css/jquery.terminal-1.0.5.css" rel="stylesheet"/>
+<script src="js/jquery.terminal-1.6.2.min.js"></script>
+<link href="css/jquery.terminal-1.6.2.css" rel="stylesheet"/>
 ```
 
 **NOTE:** From version 1.0.0 if you want to support old browsers or Safari then you'll need to use [key event property polyfill](https://github.com/cvan/keyboardevent-key-polyfill/)
@@ -86,15 +86,15 @@ You can also include js/jquery.mousewheel-min.js
 You can also grab the files from CDN:
 
 ```html
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.terminal/1.0.5/js/jquery.terminal.min.js"></script>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/jquery.terminal/1.0.5/css/jquery.terminal.min.css" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.terminal/1.6.2/js/jquery.terminal.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/jquery.terminal/1.6.2/css/jquery.terminal.min.css" rel="stylesheet"/>
 ```
 
 or
 
 ```html
-<script src="https://cdn.jsdelivr.net/jquery.terminal/1.0.5/jquery.terminal.min.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/jquery.terminal/1.0.5/jquery.terminal.min.css">
+<script src="https://cdn.jsdelivr.net/jquery.terminal/1.6.2/jquery.terminal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/jquery.terminal/1.6.2/jquery.terminal.min.css">
 ```
 
 And you're good to go.
@@ -159,57 +159,18 @@ $('#term_demo').terminal('service.php', {login: true});
 More examples [here](http://terminal.jcubic.pl/examples.php). You can also check
 [full documentation](http://terminal.jcubic.pl/api_reference.php).
 
+### Contributors
 
-### Contribution
-
-If you want to contribute make sure you modify `js/jquery.terminal-src.js` and `css/jquery.terminal-src.css` files and run `make` and make sure you're on devel branch and create PR to devel brach as well, fixes to examples and README can be made to master. To build the files (it only replace version, add current date in files and run minifiers on css and js) you need to have nodejs and run:
-
-```
-npm install
-```
-
-to build the files you need to run
-
-```
-make
-```
-
-You also need to use bash (on Windows you can use git-bash that's get installed when you install git).
-
-Before you create pull request run `make lint`, it will be run by travis, and fix any errors that may show up, the linter used is [eslint](http://eslint.org/). You can find rules for eslint in package.json.
-
-Non tech contrubution are also wellcome, if you find a bug in documentation on the website you can file an issue to [jcubic/jquery.terminal-www](https://github.com/jcubic/jquery.terminal-www).
-
-
-### Test
-
-If you want to run tests from browser you need to run
-
-```
-bower install --dev
-```
-
-and open SpecRunner.html file in the browser
-
-
-To run tests from command line you need to run this commands:
-
-```
-npm install
-make test
-```
-
-(You don't need to run npm again if you did it when buuilding the files)
-
-you can also run test covarage using
-
-```
-make cover
-```
+<!-- CONTRIBUTORS-START -->
+| [<img src="https://avatars2.githubusercontent.com/u/280241?v=3" width="100px;"/><br /><sub>Jakub Jankiewicz</sub>](http://jcubic.pl/jakub-jankiewicz)<br>[commits](https://github.com/jcubic/jquery.terminal/commits?author=jcubic) | [<img src="https://avatars2.githubusercontent.com/u/1208327?v=3" width="100px;"/><br /><sub>Zuo Qiyang</sub>](http://zuoqy.com)<br>[commits](https://github.com/jcubic/jquery.terminal/commits?author=kid1412z) | [<img src="https://avatars2.githubusercontent.com/u/6674275?v=3" width="100px;"/><br /><sub>Sébastien Warin</sub>](http://sebastien.warin.fr)<br>[commits](https://github.com/jcubic/jquery.terminal/commits?author=sebastienwarin) | [<img src="https://avatars1.githubusercontent.com/u/8646106?v=3" width="100px;"/><br /><sub>Christopher John Ryan</sub>](https://github.com/ChrisJohnRyan)<br>[commits](https://github.com/jcubic/jquery.terminal/commits?author=ChrisJohnRyan) | [<img src="https://avatars0.githubusercontent.com/u/715580?v=3" width="100px;"/><br /><sub>Johan</sub>](https://github.com/johanjordaan)<br>[commits](https://github.com/jcubic/jquery.terminal/commits?author=johanjordaan) | [<img src="https://avatars3.githubusercontent.com/u/273194?v=3" width="100px;"/><br /><sub>Florian Schäfer</sub>](https://github.com/fschaefer)<br>[commits](https://github.com/jcubic/jquery.terminal/commits?author=fschaefer) | [<img src="https://avatars3.githubusercontent.com/u/1751242?v=3" width="100px;"/><br /><sub>Ishan Ratnapala</sub>](https://github.com/IshanRatnapala)<br>[commits](https://github.com/jcubic/jquery.terminal/commits?author=IshanRatnapala) |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| [<img src="https://avatars1.githubusercontent.com/u/375027?v=3" width="100px;"/><br /><sub>Tomasz Ducin</sub>](http://ducin.it)<br>[commits](https://github.com/jcubic/jquery.terminal/commits?author=ducin) | [<img src="https://avatars0.githubusercontent.com/u/336727?v=3" width="100px;"/><br /><sub>finlob</sub>](https://github.com/finlob)<br>[commits](https://github.com/jcubic/jquery.terminal/commits?author=finlob) | [<img src="https://avatars1.githubusercontent.com/u/9531780?v=3" width="100px;"/><br /><sub>Hasan</sub>](https://github.com/JuanPotato)<br>[commits](https://github.com/jcubic/jquery.terminal/commits?author=JuanPotato) | [<img src="https://avatars2.githubusercontent.com/u/137852?v=3" width="100px;"/><br /><sub>Hraban Luyat</sub>](https://luyat.com)<br>[commits](https://github.com/jcubic/jquery.terminal/commits?author=hraban) | [<img src="https://avatars3.githubusercontent.com/u/74179?v=3" width="100px;"/><br /><sub>Martin v. Löwis</sub>](https://github.com/loewis)<br>[commits](https://github.com/jcubic/jquery.terminal/commits?author=loewis) | [<img src="https://avatars1.githubusercontent.com/u/27475?v=3" width="100px;"/><br /><sub>Mateusz Paprocki</sub>](https://github.com/mattpap)<br>[commits](https://github.com/jcubic/jquery.terminal/commits?author=mattpap) | [<img src="https://avatars1.githubusercontent.com/u/7055377?v=3" width="100px;"/><br /><sub>exit1</sub>](https://github.com/exit1)<br>[commits](https://github.com/jcubic/jquery.terminal/commits?author=exit1) |
+| [<img src="https://avatars0.githubusercontent.com/u/1263192?v=3" width="100px;"/><br /><sub>Robert Wikman</sub>](https://github.com/rbw0)<br>[commits](https://github.com/jcubic/jquery.terminal/commits?author=rbw0) | [<img src="https://avatars2.githubusercontent.com/u/139603?v=3" width="100px;"/><br /><sub>Steve Phillips</sub>](https://tryingtobeawesome.com/)<br>[commits](https://github.com/jcubic/jquery.terminal/commits?author=elimisteve) | [<img src="https://avatars3.githubusercontent.com/u/1833930?v=3" width="100px;"/><br /><sub>Yutong Luo</sub>](https://yutongluo.com)<br>[commits](https://github.com/jcubic/jquery.terminal/commits?author=yutongluo) | [<img src="https://avatars0.githubusercontent.com/u/1573141?v=3" width="100px;"/><br /><sub>coderaiser</sub>](http://coderaiser.github.io)<br>[commits](https://github.com/jcubic/jquery.terminal/commits?author=coderaiser) | [<img src="https://avatars1.githubusercontent.com/u/282724?v=3" width="100px;"/><br /><sub>mrkaiser</sub>](https://github.com/mrkaiser)<br>[commits](https://github.com/jcubic/jquery.terminal/commits?author=mrkaiser) | [<img src="https://avatars1.githubusercontent.com/u/179534?v=3" width="100px;"/><br /><sub>stereobooster</sub>](https://github.com/stereobooster)<br>[commits](https://github.com/jcubic/jquery.terminal/commits?author=stereobooster) | [<img src="https://avatars2.githubusercontent.com/u/588573?v=3" width="100px;"/><br /><sub>Juraj Vitko</sub>](https://github.com/youurayy)<br>[commits](https://github.com/jcubic/jquery.terminal/commits?author=youurayy) |
+<!-- CONTRIBUTORS-END -->
 
 
 ### License
 
 Licensed under [MIT](http://opensource.org/licenses/MIT) license
 
-Copyright (c) 2011-2017 [Jakub Jankiewicz](http://jcubic.pl)
+Copyright (c) 2011-2017 [Jakub Jankiewicz](http://jcubic.pl/jakub-jankiewicz)

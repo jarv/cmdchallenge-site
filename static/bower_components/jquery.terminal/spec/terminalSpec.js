@@ -1,4 +1,7 @@
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
+/* global jasmine, global, it, expect, describe, require, spyOn, setTimeout, location,
+          beforeEach, afterEach, sprintf, jQuery, $ */
+
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
 var loaded;
 if (typeof window === 'undefined') {
     var jsdom = require("jsdom");
@@ -7,7 +10,7 @@ if (typeof window === 'undefined') {
     var navigator = {userAgent: "node-js", platform: "Linux i686"};
     global.window.navigator = global.navigator = navigator;
     global.jQuery = global.$ = require("jquery");
-    require('../js/jquery.terminal-src');
+    require('../js/jquery.terminal-src')(global.$);
     require('../js/unix_formatting');
     global.location = global.window.location = {hash: ''};
     global.window.Element.prototype.getBoundingClientRect = function() {
@@ -34,12 +37,35 @@ function spy(obj, method) {
     }
     return spy;
 }
+function count(spy) {
+    if (spy.calls.count) {
+        return spy.calls.count();
+    } else if (spy.calls.callCount) {
+        return spy.calls.callCount;
+    } else {
+        return spy.calls.length;
+    }
+}
+function reset(spy) {
+    if (spy.calls.reset) {
+        spy.calls.reset();
+    } else if (spy.calls.callCount) {
+        spy.calls.callCount = 0;
+    } else {
+        spy.calls.length = 0;
+    }
+}
 function enter_text(text) {
     var e;
     var $root = $(document.documentElement || window);
     for (var i=0; i<text.length; ++i) {
+        e = $.Event("keydown");
+        e.which = e.keyCode = text.toUpperCase().charCodeAt(i);
+        e.key = text[i];
+        $root.trigger(e);
         e = $.Event("keypress");
         e.which = e.keyCode = text.charCodeAt(i);
+        e.key = text[i];
         e.ctrlKey = false;
         e.altKey = false;
         $root.trigger(e);
@@ -47,12 +73,17 @@ function enter_text(text) {
 }
 function shortcut(ctrl, alt, shift, which, key) {
     var e = $.Event("keydown");
+    var doc = $(document.documentElement || window);
     e.ctrlKey = ctrl;
     e.key = key;
     e.altKey = alt;
     e.shiftKey = shift;
     e.which = e.keyCode = which;
-    $(document.documentElement || window).trigger(e);
+    doc.trigger(e);
+    e = $.Event("keypress");
+    e.key = key;
+    e.which = e.keyCode = 0;
+    doc.trigger(e);
 }
 function enter_key() {
     shortcut(false, false, false, 13, 'enter');
@@ -61,6 +92,35 @@ function enter(term, text) {
     term.insert(text).focus();
     enter_key();
 }
+
+function last_div(term) {
+    return term.find('.terminal-output > div:eq(' + term.last_index() + ')');
+}
+
+var support_animations = (function() {
+    var animation = false,
+    animationstring = 'animation',
+    keyframeprefix = '',
+    domPrefixes = 'Webkit Moz O ms Khtml'.split(' '),
+    pfx  = '',
+    elm = document.createElement('div');
+    if (elm.style.animationName) {
+        animation = true;
+    }
+    if (animation === false) {
+        for (var i = 0; i < domPrefixes.length; i++) {
+            var name = domPrefixes[i] + 'AnimationName';
+            if (typeof elm.style[name] !== 'undefined') {
+                pfx = domPrefixes[i];
+                animationstring = pfx + 'Animation';
+                keyframeprefix = '-' + pfx.toLowerCase() + '-';
+                animation = true;
+                break;
+            }
+        }
+    }
+    return animation;
+})();
 function tests_on_ready() {
     describe('Terminal utils', function() {
         var command = 'test "foo bar" baz /^asd [x]/ str\\ str 10 1e10';
@@ -103,6 +163,7 @@ function tests_on_ready() {
                         '10',
                         '1e10'
                     ],
+                    args_quotes: ['"', '', '', '', '', ''],
                     rest: '"foo bar" baz /^asd [x]/ str\\ str 10 1e10'
                 });
             });
@@ -121,6 +182,7 @@ function tests_on_ready() {
                         10,
                         1e10
                     ],
+                    args_quotes: ['"', '', '', '', '', ''],
                     rest: '"foo bar" baz /^asd [x]/ str\\ str 10 1e10'
                 });
             });
@@ -165,6 +227,84 @@ function tests_on_ready() {
             });
         });
         describe('$.terminal.format_split', function() {
+            var input = [
+                ['[[;;]][[;;]Foo][[;;]Bar][[;;]]', ['[[;;]]','[[;;]Foo]','[[;;]Bar]','[[;;]]']],
+                ['Lorem[[;;]]Ipsum[[;;]Foo]Dolor[[;;]Bar]Sit[[;;]]Amet', [
+                    'Lorem', '[[;;]]', 'Ipsum', '[[;;]Foo]', 'Dolor', '[[;;]Bar]', 'Sit', '[[;;]]', 'Amet'
+                ]]
+            ];
+            it('should split text inot formatting', function() {
+                input.forEach(function(spec) {
+                    expect($.terminal.format_split(spec[0])).toEqual(spec[1]);
+                });
+            });
+        });
+        describe('$.terminal.substring', function() {
+            var input = '[[;;]Lorem ipsum dolor sit amet], [[;;]consectetur adipiscing elit]. [[;;]Maecenas ac massa tellus. Sed ac feugiat leo].';
+            it('should return substring when starting at 0', function() {
+                var tests = [
+                    [25, '[[;;]Lorem ipsum dolor sit ame]'],
+                    [26, '[[;;]Lorem ipsum dolor sit amet]'],
+                    [27, '[[;;]Lorem ipsum dolor sit amet],'],
+                    [30, '[[;;]Lorem ipsum dolor sit amet], [[;;]co]']
+                ];
+                tests.forEach(function(spec) {
+                    expect($.terminal.substring(input, 0, spec[0])).toEqual(spec[1]);
+                });
+            });
+            it('should return substring when ending at length or larger', function() {
+                var tests = [
+                    [0, '[[;;]Lorem ipsum dolor sit amet], [[;;]consectetur adipiscing elit]. [[;;]Maecenas ac massa tellus. Sed ac feugiat leo].'],
+                    [10, '[[;;]m dolor sit amet], [[;;]consectetur adipiscing elit]. [[;;]Maecenas ac massa tellus. Sed ac feugiat leo].'],
+                    [27, ' [[;;]consectetur adipiscing elit]. [[;;]Maecenas ac massa tellus. Sed ac feugiat leo].'],
+                    [30, '[[;;]nsectetur adipiscing elit]. [[;;]Maecenas ac massa tellus. Sed ac feugiat leo].']
+                ];
+                tests.forEach(function(spec) {
+                    expect($.terminal.substring(input, spec[0], 102)).toEqual(spec[1]);
+                    expect($.terminal.substring(input, spec[0], 200)).toEqual(spec[1]);
+                });
+            });
+            it('should return substring when input starts from normal text', function() {
+                var input = 'Lorem Ipsum [[;;]Dolor]';
+                expect($.terminal.substring(input, 10, 200)).toEqual('m [[;;]Dolor]');
+            });
+            it('should substring when string have no formatting', function() {
+                var input = 'Lorem Ipsum Dolor Sit Amet';
+                var tests = [
+                    [0, 10, 'Lorem Ipsu'],
+                    [10, 20, 'm Dolor Si'],
+                    [20, 27, 't Amet']
+                ];
+                tests.forEach(function(spec) {
+                    expect($.terminal.substring(input, spec[0], spec[1])).toEqual(spec[2]);
+                });
+            });
+        });
+        describe('$.terminal.normalize', function() {
+            function test(specs) {
+                specs.forEach(function(spec) {
+                    expect($.terminal.normalize(spec[0])).toEqual(spec[1]);
+                });
+            }
+            it('should add 5 argument to formatting', function() {
+                var tests = [
+                    ['[[;;]Lorem] [[;;]Ipsum] [[;;;]Dolor]', '[[;;;;Lorem]Lorem] [[;;;;Ipsum]Ipsum] [[;;;;Dolor]Dolor]'],
+                    ['[[;;;;]Lorem Ipsum Dolor] [[;;;;]Amet]', '[[;;;;Lorem Ipsum Dolor]Lorem Ipsum Dolor] [[;;;;Amet]Amet]']
+                ];
+                test(tests);
+            });
+            it('should not add 5 argument', function() {
+                var tests = [
+                    ['[[;;;;Foo]Lorem Ipsum Dolor] [[;;;;Bar]Amet]', '[[;;;;Foo]Lorem Ipsum Dolor] [[;;;;Bar]Amet]']
+                ];
+                test(tests);
+            });
+            it('should remove empty formatting', function() {
+                var tests = [
+                    ['[[;;]]Lorem Ipsum [[;;]]Dolor Sit [[;;;;]]Amet', 'Lorem Ipsum Dolor Sit Amet']
+                ];
+                test(tests);
+            });
         });
         describe('$.terminal.is_formatting', function() {
 
@@ -269,47 +409,430 @@ function tests_on_ready() {
                         'ollis. Nam ac varius risus. Cras faucibus euismod nulla, ac aucto',
                         'r diam rutrum sit amet. Nulla vel odio erat], ac mattis enim.'
                        ].join('');
-            it('should split text that into equal length chunks', function() {
+            it('should keep formatting if it span across multiple lines', function() {
+                var array = ["[[bui;#fff;;;Lorem ipsum dolor sit amet, consectetur adipisc"+
+                             "ing elit. Nulla sed dolor nisl, in suscipit justo. Donec a e"+
+                             "nim et est porttitor semper at vitae augue. Proin at nulla a"+
+                             "t dui mattis mattis. Nam a volutpat ante. Aliquam consequat "+
+                             "dui eu sem convallis ullamcorper. Nulla suscipit, massa vita"+
+                             "e suscipit ornare, tellus]Lorem ipsum dolor sit amet, consec"+
+                             "tetur adipiscing elit. Nulla sed dolor nisl, in suscipit jus"+
+                             "to. Do]","[[bui;#fff;;;Lorem ipsum dolor sit amet, consectet"+
+                             "ur adipiscing elit. Nulla sed dolor nisl, in suscipit justo."+
+                             " Donec a enim et est porttitor semper at vitae augue. Proin "+
+                             "at nulla at dui mattis mattis. Nam a volutpat ante. Aliquam "+
+                             "consequat dui eu sem convallis ullamcorper. Nulla suscipit, "+
+                             "massa vitae suscipit ornare, tellus]nec a enim et est portti"+
+                             "tor semper at vitae augue. Proin at nulla at dui mattis matt"+
+                             "is. Nam a volutp]","[[bui;#fff;;;Lorem ipsum dolor sit amet,"+
+                             " consectetur adipiscing elit. Nulla sed dolor nisl, in susci"+
+                             "pit justo. Donec a enim et est porttitor semper at vitae aug"+
+                             "ue. Proin at nulla at dui mattis mattis. Nam a volutpat ante"+
+                             ". Aliquam consequat dui eu sem convallis ullamcorper. Nulla "+
+                             "suscipit, massa vitae suscipit ornare, tellus]at ante. Aliqu"+
+                             "am consequat dui eu sem convallis ullamcorper. Nulla suscipi"+
+                             "t, massa vitae suscipit or]","[[bui;#fff;;;Lorem ipsum dolor"+
+                             " sit amet, consectetur adipiscing elit. Nulla sed dolor nisl"+
+                             ", in suscipit justo. Donec a enim et est porttitor semper at"+
+                             " vitae augue. Proin at nulla at dui mattis mattis. Nam a vol"+
+                             "utpat ante. Aliquam consequat dui eu sem convallis ullamcorp"+
+                             "er. Nulla suscipit, massa vitae suscipit ornare, tellus]nare"+
+                             ", tellus] est [[b;;#f00;;consequat nunc, quis blandit elit o"+
+                             "dio eu arcu. Nam a urna nec nisl varius sodales. Mauris iacu"+
+                             "lis tincidunt orci id commodo. Aliquam]consequat nunc, quis "+
+                             "blandit elit odio eu arcu. Nam a urna nec nisl varius sodale"+
+                             "s.]","[[b;;#f00;;consequat nunc, quis blandit elit odio eu a"+
+                             "rcu. Nam a urna nec nisl varius sodales. Mauris iaculis tinc"+
+                             "idunt orci id commodo. Aliquam] Mauris iaculis tincidunt orc"+
+                             "i id commodo. Aliquam] non magna quis [[i;;;;tortor malesuad"+
+                             "a aliquam]tortor malesuada aliquam] eget ut l","acus. Nam ut"+
+                             " vestibulum est. Praesent volutpat tellus in eros dapibus el"+
+                             "ementum. Nam laoreet risus n","on nulla mollis ac luctus [[u"+
+                             "b;#fff;;;felis dapibus. Pellentesque mattis elementum augue "+
+                             "non sollicitudin. Nullam lobortis fermentum elit ac mollis. "+
+                             "Nam ac varius risus. Cras faucibus euismod nulla, ac auctor "+
+                             "diam rutrum sit amet. Nulla vel odio erat]felis dapibus. Pel"+
+                             "lentesque mattis elementum augue non sollicitudin. Nulla]",
+                             "[[ub;#fff;;;felis dapibus. Pellentesque mattis elementum aug"+
+                             "ue non sollicitudin. Nullam lobortis fermentum elit ac molli"+
+                             "s. Nam ac varius risus. Cras faucibus euismod nulla, ac auct"+
+                             "or diam rutrum sit amet. Nulla vel odio erat]m lobortis ferm"+
+                             "entum elit ac mollis. Nam ac varius risus. Cras faucibus eui"+
+                             "smod nulla, ac auctor dia]","[[ub;#fff;;;felis dapibus. Pell"+
+                             "entesque mattis elementum augue non sollicitudin. Nullam lob"+
+                             "ortis fermentum elit ac mollis. Nam ac varius risus. Cras fa"+
+                             "ucibus euismod nulla, ac auctor diam rutrum sit amet. Nulla "+
+                             "vel odio erat]m rutrum sit amet. Nulla vel odio erat], ac ma"+
+                             "ttis enim."];
+                expect($.terminal.split_equal(text, 100)).toEqual(array);
+            });
+            it("should keep formatting if span across line with newline characters", function() {
+                var text = ['[[bui;#fff;]Lorem ipsum dolor sit amet, consectetur adipi',
+                            'scing elit. Nulla sed dolor nisl, in suscipit justo. Donec a enim',
+                            ' et est porttitor semper at vitae augue. Proin at nulla at dui ma',
+                            'ttis mattis. Nam a volutpat ante. Aliquam consequat dui eu sem co',
+                            'nvallis ullamcorper. Nulla suscipit, massa vitae suscipit ornare,',
+                            ' tellus]'].join('\n');
+                var formatting = /^\[\[bui;#fff;;;Lorem ipsum dolor sit amet, consectetur adipi\\nscing elit. Nulla sed dolor nisl, in suscipit justo. Donec a enim\\n et est porttitor semper at vitae augue. Proin at nulla at dui ma\\nttis mattis. Nam a volutpat ante. Aliquam consequat dui eu sem co\\nnvallis ullamcorper. Nulla suscipit, massa vitae suscipit ornare,\\n tellus\]/;
+                $.terminal.split_equal(text, 100).forEach(function(line, i) {
+                    if (!line.match(formatting)) {
+                        throw new Error("Line nr " + i + " " + line + " don't have correct " +
+                                        "formatting");
+                    }
+                });
+            });
+            function test_lenghts(string, fn) {
                 var cols = [10, 40, 60, 400];
                 for (var i=cols.length; i--;) {
-                    var lines = $.terminal.split_equal(text, cols[i]);
-                    var success = true;
-                    for (var j=0; j<lines.length; ++j) {
-                        if ($.terminal.strip(lines[j]).length > cols[i]) {
-                            success = false;
-                            break;
-                        }
+                    var lines = $.terminal.split_equal(string, cols[i]);
+                    var lengths;
+                    if (fn) {
+                        lengths = lines.map(function(line) {
+                            return fn(line).length;
+                        });
+                    } else {
+                        lengths = lines.map(function(line) {
+                            return line.length;
+                        });
                     }
-                    expect(success).toEqual(true);
+                    lengths.slice(0, -1).forEach(function(length) {
+                        if (length != cols[i]) {
+                            throw new Error('Lines count is ' + JSON.stringify(lengths) +
+                                           ' but it should have ' + cols[i]);
+                        }
+                    });
+                    if (lengths[lengths-1] > cols[i]) {
+                        throw new Error('Lines count is ' + JSON.stringify(lengths) +
+                                        ' but it should have ' + cols[i]);
+                    }
+                    expect(true).toEqual(true);
                 }
+            }
+            it('should split text into equal length chunks', function() {
+                test_lenghts(text, function(line) {
+                    return $.terminal.strip(line);
+                });
+            });
+            it('should split text when all brackets are escaped', function() {
+                test_lenghts($.terminal.escape_brackets(text), function(line) {
+                    return $('<div>' + line + '</div>').text();
+                });
+            });
+            it('should return whole lines if length > then the length of the line', function() {
+                var test = [
+                    {
+                        input: ['[[bui;#fff;]Lorem ipsum dolor sit amet,] consectetur adipi',
+                                'scing elit.'].join(''),
+                        output: [['[[bui;#fff;;;Lorem ipsum dolor sit amet,]Lorem ipsum dol',
+                                 'or sit amet,] consectetur adipiscing elit.'].join('')]
+                    },
+                    {
+                        input: ['[[bui;#fff;]Lorem ipsum dolor sit amet, consectetur adipi',
+                                'scing elit.]'].join(''),
+                        output: [[
+                            '[[bui;#fff;;;Lorem ipsum dolor sit amet, consectetur adipi',
+                            'scing elit.]Lorem ipsum dolor sit amet, consectetur adipis',
+                            'cing elit.]'].join('')]
+                    },
+                    {
+                        input: ['[[bui;#fff;]Lorem ipsum dolor sit amet, consectetur adipi',
+                                'scing elit.]\n[[bui;#fff;]Lorem ipsum dolor sit amet, con',
+                                'sectetur adipiscing elit.]'].join(''),
+                        output: [
+                            [
+                                '[[bui;#fff;;;Lorem ipsum dolor sit amet, consectetur adipi',
+                                'scing elit.]Lorem ipsum dolor sit amet, consectetur adipis',
+                                'cing elit.]'].join(''),
+                            ['[[bui;#fff;;;Lorem ipsum dolor sit amet, consectetur adipi',
+                             'scing elit.]Lorem ipsum dolor sit amet, consectetur adipis',
+                             'cing elit.]'].join('')]
+                    },
+                    {
+                        input: ['[[bui;#fff;]Lorem ipsum dolor sit amet, consectetur adipi',
+                                'scing elit.]\n[[bui;#fff;]Lorem ipsum dolor sit amet, con',
+                                'sectetur adipiscing elit.]\n[[bui;#fff;]Lorem ipsum dolor',
+                                ' sit amet, consectetur adipiscing elit.]\n[[bui;#fff;]Lor',
+                                'em ipsum dolor sit amet, consectetur adipiscing elit.]'
+                               ].join(''),
+                        output: ['[[bui;#fff;;;Lorem ipsum dolor sit amet, consectetur adi'+
+                                 'piscing elit.]Lorem ipsum dolor si]','[[bui;#fff;;;Lorem'+
+                                 ' ipsum dolor sit amet, consectetur adipiscing elit.]t am'+
+                                 'et, consectetur ]','[[bui;#fff;;;Lorem ipsum dolor sit a'+
+                                 'met, consectetur adipiscing elit.]adipiscing elit.]','[['+
+                                 'bui;#fff;;;Lorem ipsum dolor sit amet, consectetur adipi'+
+                                 'scing elit.]Lorem ipsum dolor si]','[[bui;#fff;;;Lorem i'+
+                                 'psum dolor sit amet, consectetur adipiscing elit.]t amet'+
+                                 ', consectetur ]','[[bui;#fff;;;Lorem ipsum dolor sit ame'+
+                                 't, consectetur adipiscing elit.]adipiscing elit.]','[[bu'+
+                                 'i;#fff;;;Lorem ipsum dolor sit amet, consectetur adipisc'+
+                                 'ing elit.]Lorem ipsum dolor si]','[[bui;#fff;;;Lorem ips'+
+                                 'um dolor sit amet, consectetur adipiscing elit.]t amet, '+
+                                 'consectetur ]','[[bui;#fff;;;Lorem ipsum dolor sit amet,'+
+                                 ' consectetur adipiscing elit.]adipiscing elit.]','[[bui;'+
+                                 '#fff;;;Lorem ipsum dolor sit amet, consectetur adipiscin'+
+                                 'g elit.]Lorem ipsum dolor si]','[[bui;#fff;;;Lorem ipsum'+
+                                 ' dolor sit amet, consectetur adipiscing elit.]t amet, co'+
+                                 'nsectetur ]','[[bui;#fff;;;Lorem ipsum dolor sit amet, c'+
+                                 'onsectetur adipiscing elit.]adipiscing elit.]'],
+                        split: 20
+                    }
+                ];
+                test.forEach(function(test) {
+                    var array = $.terminal.split_equal(test.input, test.split || 100);
+                    expect(array).toEqual(test.output);
+                });
             });
         });
     });
-    support_animations = (function() {
-        var animation = false,
-            animationstring = 'animation',
-            keyframeprefix = '',
-            domPrefixes = 'Webkit Moz O ms Khtml'.split(' '),
-            pfx  = '',
-            elm = document.createElement('div');
-        if (elm.style.animationName) {
-            animation = true;
-        }
-        if (animation === false) {
-            for (var i = 0; i < domPrefixes.length; i++) {
-                var name = domPrefixes[i] + 'AnimationName';
-                if (typeof elm.style[name] !== 'undefined') {
-                    pfx = domPrefixes[i];
-                    animationstring = pfx + 'Animation';
-                    keyframeprefix = '-' + pfx.toLowerCase() + '-';
-                    animation = true;
-                    break;
-                }
-            }
-        }
-        return animation;
-    })();
     describe('Terminal plugin', function() {
+        describe('jQuery Terminal options', function() {
+            describe('prompt', function() {
+                it('should set prompt', function() {
+                    var prompt = '>>> ';
+                    var term = $('<div/>').terminal($.noop, {
+                        prompt: prompt
+                    });
+                    expect(term.get_prompt()).toEqual(prompt);
+                });
+                it('should have default prompt', function() {
+                    var term = $('<div/>').terminal($.noop);
+                    expect(term.get_prompt()).toEqual('> ');
+                });
+            });
+            describe('history', function() {
+                it('should save data in history', function() {
+                    var term = $('<div/>').terminal($.noop, {
+                        history: true,
+                        name: 'history_enabled'
+                    });
+                    expect(term.history().data()).toEqual([]);
+                    var commands = ['foo', 'bar', 'baz'];
+                    commands.forEach(function(command) {
+                        enter(term, command);
+                    });
+                    expect(term.history().data()).toEqual(commands);
+                });
+                it('should not store history', function() {
+                    var term = $('<div/>').terminal($.noop, {
+                        history: false,
+                        name: 'history_disabled'
+                    });
+                    expect(term.history().data()).toEqual([]);
+                    var commands = ['foo', 'bar', 'baz'];
+                    commands.forEach(function(command) {
+                        enter(term, command);
+                    });
+                    expect(term.history().data()).toEqual([]);
+                });
+            });
+            describe('exit', function() {
+                it('should add exit command', function() {
+                    var term = $('<div/>').terminal($.noop, {
+                        exit: true
+                    });
+                    term.push($.noop);
+                    expect(term.level()).toEqual(2);
+                    enter(term, 'exit');
+                    expect(term.level()).toEqual(1);
+                });
+                it('should not add exit command', function() {
+                    var term = $('<div/>').terminal($.noop, {
+                        exit: false
+                    });
+                    term.push($.noop);
+                    expect(term.level()).toEqual(2);
+                    enter(term, 'exit');
+                    expect(term.level()).toEqual(2);
+                });
+            });
+            describe('clear', function() {
+                it('should add clear command', function() {
+                    var term = $('<div/>').terminal($.noop, {
+                        clear: true
+                    });
+                    term.clear().echo('foo').echo('bar');
+                    expect(term.get_output()).toEqual('foo\nbar');
+                    enter(term, 'clear');
+                    expect(term.get_output()).toEqual('');
+                });
+                it('should not add clear command', function() {
+                    var term = $('<div/>').terminal($.noop, {
+                        clear: false
+                    });
+                    term.clear().echo('foo').echo('bar');
+                    expect(term.get_output()).toEqual('foo\nbar');
+                    enter(term, 'clear');
+                    expect(term.get_output()).toEqual('foo\nbar\n> clear');
+                });
+            });
+            describe('enabled', function() {
+                it('should enable terminal', function() {
+                    var term = $('<div/>').terminal($.noop, {
+                        enabled: true
+                    });
+                    expect(term.enabled()).toBeTruthy();
+                });
+                it('should not enable terminal', function() {
+                    var term = $('<div/>').terminal($.noop, {
+                        enabled: false
+                    });
+                    expect(term.enabled()).toBeFalsy();
+                });
+            });
+            describe('historySize', function() {
+                var length = 10;
+                var commands = [];
+                for (var i = 0; i < 20; ++i) {
+                    commands.push('command ' + (i+1));
+                }
+                it('should limit number of history', function() {
+                    var term = $('<div/>').terminal($.noop, {
+                        historySize: length,
+                        greetings: false
+                    });
+                    commands.forEach(function(command) {
+                        enter(term, command);
+                    });
+                    var history = term.history().data();
+                    expect(history.length).toEqual(length);
+                    expect(history).toEqual(commands.slice(length));
+                });
+            });
+            describe('maskChar', function() {
+                function text(term) {
+                    return term.find('.cmd > span:not(.prompt,.cursor)').text();
+                }
+                it('should use specified character for mask', function() {
+                    var mask = '-';
+                    var term = $('<div/>').terminal($.noop, {
+                        maskChar: mask,
+                        greetings: false
+                    });
+                    term.set_mask(true);
+                    var command = 'foo bar';
+                    term.insert(command);
+                    expect(text(term)).toEqual(command.replace(/./g, mask));
+                });
+            });
+            describe('wrap', function() {
+                var term = $('<div/>').terminal($.noop, {
+                    wrap: false,
+                    greetings: false,
+                    numChars: 100
+                });
+                it('should not wrap text', function() {
+                    var line = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras ultrices rhoncus hendrerit. Nunc ligula eros, tincidunt posuere tristique quis, iaculis non elit.';
+                    term.echo(line);
+                    var output = last_div(term);
+                    expect(output.find('span').length).toEqual(1);
+                    expect(output.find('div').length).toEqual(1);
+                });
+                it('should not wrap formatting', function() {
+                    var term = $('<div/>').terminal($.noop, {
+                        wrap: false,
+                        greetings: false,
+                        numChars: 100
+                    });
+                    var line = '[[;#fff;]Lorem ipsum dolor sit amet], consectetur adipiscing elit. [[;#fee;]Cras ultrices rhoncus hendrerit.] Nunc ligula eros, tincidunt posuere tristique quis, [[;#fff;]iaculis non elit.]';
+                    term.echo(line);
+                    var output = last_div(term);
+                    expect(output.find('span').length).toEqual(5); // 3 formatting and 2 between
+                    expect(output.find('div').length).toEqual(1);
+                });
+            });
+            describe('checkArity', function() {
+                var interpreter = {
+                    foo: function(a, b) {
+                        a = a || 10;
+                        b = b || 10;
+                        this.echo(a + b);
+                    }
+                };
+                var term = $('<div/>').terminal(interpreter, {
+                    greetings: false,
+                    checkArity: false
+                });
+                it('should call function with no arguments', function() {
+                    spy(interpreter, 'foo');
+                    enter(term, 'foo');
+                    expect(interpreter.foo).toHaveBeenCalledWith();
+                });
+                it('should call function with one argument', function() {
+                    spy(interpreter, 'foo');
+                    enter(term, 'foo 10');
+                    expect(interpreter.foo).toHaveBeenCalledWith(10);
+                });
+            });
+            describe('raw', function() {
+                var term = $('<div/>').terminal($.noop, {
+                    raw: true
+                });
+                beforeEach(function() {
+                    term.clear();
+                });
+                var img = '<img src="http://lorempixel.com/300/200/cats/"/>';
+                it('should display html when no raw echo option is specified', function() {
+                    term.echo(img);
+                    expect(last_div(term).find('img').length).toEqual(1);
+                });
+                it('should display html as text when using raw echo option', function() {
+                    term.echo(img, {raw: false});
+                    var output = last_div(term);
+                    expect(output.find('img').length).toEqual(0);
+                    expect(output.text().replace(/\s/g, ' ')).toEqual(img);
+                });
+            });
+            describe('exceptionHandler', function() {
+                var test = {
+                    exceptionHandler: function(e) {
+                    }
+                };
+                var exception = new Error('some exception');
+                it('should call exception handler with thrown error', function() {
+                    spy(test, 'exceptionHandler');
+                    try {
+                        var term = $('<div/>').terminal(function() {
+                            throw exception;
+                        }, {
+                            greetings: false,
+                            exceptionHandler: test.exceptionHandler
+                        });
+                    } catch(e) {}
+                    enter(term, 'foo');
+                    expect(term.find('.error').length).toEqual(0);
+                    expect(test.exceptionHandler).toHaveBeenCalledWith(exception, 'USER');
+                });
+            });
+            describe('pauseEvents', function() {
+                var options = {
+                    pauseEvents: false,
+                    keypress: function(e) {
+                    },
+                    keydown: function(e) {
+                    }
+                };
+                var term;
+                beforeEach(function() {
+                    spy(options, 'keypress');
+                    spy(options, 'keydown');
+                });
+                it('should execute keypress and keydown when terminal is paused', function() {
+                    term = $('<div/>').terminal($.noop, options);
+                    term.pause();
+                    shortcut(false, false, false, 32, ' ');
+                    expect(options.keypress).toHaveBeenCalled();
+                    expect(options.keydown).toHaveBeenCalled();
+                });
+                it('should not execute keypress and keydown', function() {
+                    options.pauseEvents = true;
+                    term = $('<div/>').terminal($.noop, options);
+                    term.pause();
+                    shortcut(false, false, false, 32, ' ');
+                    expect(options.keypress).not.toHaveBeenCalled();
+                    expect(options.keydown).not.toHaveBeenCalled();
+                });
+            });
+        });
         describe('terminal create / terminal destroy', function() {
             var term = $('<div/>').appendTo('body').terminal();
             it('should create terminal', function() {
@@ -328,8 +851,9 @@ function tests_on_ready() {
                 expect(cursor.is('span')).toBe(true);
                 expect(cursor.prev().is('span')).toBe(true);
                 expect(cursor.next().is('span')).toBe(true);
-                term.focus(true);
-                expect(cursor.hasClass('blink')).toBe(true);
+                term.focus().cmd().enable();
+                //this check sometimes fail in travis
+                //expect(cursor.hasClass('blink')).toBe(true);
                 expect(term.find('.clipboard').length).toBe(1);
             });
             it('should have signature', function() {
@@ -348,16 +872,19 @@ function tests_on_ready() {
             });
         });
         describe('cursor', function() {
-            it('only one terminal should have blinking cursor', function() {
+            it('only one terminal should have blinking cursor', function(done) {
                 var term1 = $('<div/>').appendTo('body').terminal($.noop);
                 term1.focus();
                 var term2 = $('<div/>').appendTo('body').terminal($.noop);
                 term1.pause();
                 term2.focus();
-                term1.resume();
-                expect($('.cursor.blink').length).toEqual(1);
-                term1.destroy().remove();
-                term2.destroy().remove();
+                setTimeout(function() {
+                    term1.resume();
+                    expect($('.cursor.blink').length).toEqual(1);
+                    term1.destroy().remove();
+                    term2.destroy().remove();
+                    done();
+                }, 100);
             });
         });
         describe('enter text', function() {
@@ -465,7 +992,7 @@ function tests_on_ready() {
                 expect(history.data()).toEqual([]);
             });
             it('should have name', function() {
-                expect(cmd.name()).toEqual('cmd_3');
+                expect(cmd.name()).toEqual('cmd_' + term.id());
             });
             it('should return command', function() {
                 cmd.set('foo');
@@ -561,6 +1088,7 @@ function tests_on_ready() {
                 expect(cmd.get()).toEqual('foo bar');
                 shortcut(true, false, false, 71, 'g'); // CTRL+G
                 expect(cmd.get()).toEqual('foo bar baz');
+                expect(cmd.prompt()).toEqual("> ");
                 cmd.purge();
                 term.destroy().remove();
             });
@@ -833,7 +1361,9 @@ function tests_on_ready() {
                     }, 200);
                 });
                 it('should display error on Invalid JSON-RPC response', function(done) {
-                    var term = $('<div/>').appendTo('body').terminal('/not-rpc', {greetings: false});
+                    var term = $('<div/>').appendTo('body').terminal('/not-rpc', {
+                        greetings: false
+                    });
                     setTimeout(function() {
                         enter(term, 'foo');
                         setTimeout(function() {
@@ -968,7 +1498,7 @@ function tests_on_ready() {
             var term = $('<div/>').appendTo('body').terminal($.noop, {
                 name: 'completion',
                 greetings: false,
-                completion: ['foo', 'bar', 'baz', 'lorem\\ ipsum']
+                completion: ['foo', 'bar', 'baz', 'lorem ipsum']
             });
             it('should complete text for main intepreter', function() {
                 term.focus();
@@ -1011,7 +1541,7 @@ function tests_on_ready() {
                 var cmd = $.terminal.parse_command(command);
                 var re = new RegExp('^\\s*' + $.terminal.escape_regex(string));
                 if (command.match(re)) {
-                    callback(['foo', 'bar', 'baz', 'lorem\\ ipsum']);
+                    callback(['foo', 'bar', 'baz', 'lorem ipsum']);
                 } else if (cmd.name == 'foo') {
                     callback(['one', 'two', 'tree']);
                 } else {
@@ -1088,6 +1618,56 @@ function tests_on_ready() {
                 expect(term.get_command()).toEqual('ec\t');
                 term.destroy().remove();
             });
+            it('should complete text with spaces inside quotes', function() {
+                term = $('<div/>').appendTo('body').terminal({}, {
+                    completion: ['foo bar baz']
+                });
+                term.focus();
+                term.insert('asd foo\\ b');
+                shortcut(false, false, false, 9, 'tab');
+                expect(term.get_command()).toEqual('asd foo\\ bar\\ baz');
+                term.destroy().remove();
+            });
+            it('should complete text that have spaces inside double quote', function() {
+                term = $('<div/>').appendTo('body').terminal({}, {
+                    completion: ['foo bar baz']
+                });
+                term.focus();
+                term.insert('asd "foo b');
+                shortcut(false, false, false, 9, 'tab');
+                expect(term.get_command()).toEqual('asd "foo bar baz"');
+                term.destroy().remove();
+            });
+            it('should complete when text have escaped quotes', function() {
+                term = $('<div/>').appendTo('body').terminal({}, {
+                    completion: ['foo "bar" baz']
+                });
+                term.focus();
+                term.insert('asd "foo');
+                shortcut(false, false, false, 9, 'tab');
+                expect(term.get_command()).toEqual('asd "foo \\"bar\\" baz"');
+                term.destroy().remove();
+            });
+            it('should complete when text have double quote inside single quotes', function() {
+                term = $('<div/>').appendTo('body').terminal({}, {
+                    completion: ['foo "bar" baz']
+                });
+                term.focus();
+                term.insert("asd 'foo");
+                shortcut(false, false, false, 9, 'tab');
+                expect(term.get_command()).toEqual("asd 'foo \"bar\" baz'");
+                term.destroy().remove();
+            });
+            it('should complete when text have single quote inside double quotes', function() {
+                term = $('<div/>').appendTo('body').terminal({}, {
+                    completion: ["foo 'bar' baz"]
+                });
+                term.focus();
+                term.insert('asd "foo');
+                shortcut(false, false, false, 9, 'tab');
+                expect(term.get_command()).toEqual("asd \"foo 'bar' baz\"");
+                term.destroy().remove();
+            });
         });
         describe('jQuery Terminal methods', function() {
             var terminal_name = 'methods';
@@ -1105,7 +1685,7 @@ function tests_on_ready() {
             });
             it('should return id of the terminal', function() {
                 term.focus();
-                expect(term.id()).toEqual(8);
+                expect(term.id()).toEqual(11);
             });
             it('should clear the terminal', function() {
                 term.clear();
@@ -1146,10 +1726,10 @@ function tests_on_ready() {
                 expect(term.get_command()).toEqual(command);
                 expect(term.get_prompt()).toEqual(prompt);
                 expect(cmd.position()).toEqual(position);
-                var html = '<div class="command">'+
+                var html = '<div class="command" role="presentation" aria-hidden="true">'+
                                '<div style="width: 100%;"><span>&gt;&nbsp;foo</span></div>'+
                            '</div>'+
-                           '<div class="command">'+
+                           '<div class="command" role="presentation" aria-hidden="true">'+
                                '<div style="width: 100%;"><span>&gt;&nbsp;bar</span></div>'+
                            '</div>';
                 expect(term.find('.terminal-output').html()).toEqual(html);
@@ -1159,7 +1739,9 @@ function tests_on_ready() {
                 term.save_state(); // initial state
                 term.save_state('foo');
                 term.save_state('bar');
-                expect(decodeURIComponent(location.hash)).toEqual('#[[8,1,"foo"],[8,2,"bar"]]');
+                var id = term.id();
+                var hash = '#' + JSON.stringify([[id,1,"foo"],[id,2,"bar"]]);
+                expect(decodeURIComponent(location.hash)).toEqual(hash);
                 term.destroy().remove();
             });
             describe('exec', function() {
@@ -1333,17 +1915,22 @@ function tests_on_ready() {
                         term.logout();
                     }
                     setTimeout(function() {
-                        expect(options.login).toHaveBeenCalled();
-                        expect(test.test).toHaveBeenCalledWith('foo');
-                        term.logout().destroy().remove();
-                        done();
+                        try {
+                            expect(options.login).toHaveBeenCalled();
+                            expect(test.test).toHaveBeenCalledWith('foo');
+                            term.logout().destroy().remove();
+                        } catch (e) {
+                            console.log(e.stack);
+                        } finally {
+                            done();
+                        }
                     }, 500);
-                }, 1000);
+                }, 5000);
             });
             describe('methods after creating async rpc with system.describe', function() {
                 it('should call methods', function(done) {
                     spy(object, 'echo');
-                    var term = $('<div/>').terminal('/async');
+                    var term = $('<div/>').appendTo('body').terminal('/async');
                     term.exec('echo foo bar');
                     term.insert('foo');
                     setTimeout(function() {
@@ -1513,7 +2100,7 @@ function tests_on_ready() {
                             done();
                         }, 500);
                     }, 500);
-                });
+                }, 5000);
             });
             describe('greetings', function() {
                 it('should show greetings', function(done) {
@@ -1720,7 +2307,7 @@ function tests_on_ready() {
                     expect(term.signature()).toEqual('');
                 });
                 it('should return proper max length of signature', function() {
-                    var numbers = {20: 20, 36: 30, 60: 49, 70: 64, 100: 75};
+                    var numbers = {20: 20, 36: 30, 60: 52, 70: 64, 100: 75};
                     Object.keys(numbers).forEach(function(numChars) {
                         var length = numbers[numChars];
                         term.option('numChars', numChars);
@@ -1931,7 +2518,7 @@ function tests_on_ready() {
                     expect(div.hasClass('exception')).toBeTruthy();
                     expect(div.hasClass('message')).toBeTruthy();
                     if (error.stack) {
-                        output = term.find('.terminal-output div div').map(function() {
+                        var output = term.find('.terminal-output div div').map(function() {
                             return $(this).text().replace(/\xA0/g, ' ');
                         }).get().slice(1);
                         expect(error.stack).toEqual(output.join('\n'));
@@ -2254,9 +2841,263 @@ function tests_on_ready() {
                     expect(term.get_prompt()).toEqual(prompt);
                 });
             });
-        });
-        describe('jQuery Terminal options', function() {
-
+            describe('pop', function() {
+                describe('with login', function() {
+                    var token = 'TOKEN';
+                    var term;
+                    var options;
+                    beforeEach(function() {
+                        options = {
+                            name: 'pop',
+                            onExit: function() {},
+                            login: function(user, password, callback) {
+                                callback(token);
+                            },
+                            onPop: function() {}
+                        };
+                        spy(options, 'onExit');
+                        spy(options, 'onPop');
+                        term = $('<div/>').terminal({}, options);
+                        if (term.token()) {
+                            term.logout();
+                        }
+                        enter(term, 'foo');
+                        enter(term, 'bar');
+                        ['one', 'two', 'three', 'four'].forEach(function(name, index) {
+                            term.push($.noop, {
+                                name: name,
+                                prompt: (index+1) + '> '
+                            });
+                        });
+                    });
+                    afterEach(function() {
+                        reset(options.onExit);
+                        reset(options.onPop);
+                        term.destroy();
+                    });
+                    it('should return terminal object', function() {
+                        expect(term.pop()).toEqual(term);
+                    });
+                    it('should pop one interpreter', function() {
+                        term.pop();
+                        expect(term.name()).toEqual('three');
+                        expect(term.get_prompt()).toEqual('3> ');
+                    });
+                    it('should pop all interpreters', function() {
+                        while(term.level() > 1) {
+                            term.pop();
+                        }
+                        expect(term.name()).toEqual('pop');
+                        expect(term.get_prompt()).toEqual('> ');
+                    });
+                    it('should logout from main intepreter', function() {
+                        while(term.level() > 1) {
+                            term.pop();
+                        }
+                        term.pop();
+                        expect(term.get_prompt()).toEqual('login: ');
+                    });
+                    it('should call callbacks', function() {
+                        expect(count(options.onPop)).toBe(0);
+                        while(term.level() > 1) {
+                            term.pop();
+                        }
+                        term.pop();
+                        expect(options.onExit).toHaveBeenCalled();
+                        expect(options.onExit).toHaveBeenCalled();
+                        expect(count(options.onExit)).toBe(1);
+                        expect(count(options.onPop)).toBe(5);
+                    });
+                });
+            });
+            describe('option', function() {
+                var options = {
+                    prompt: '$ ',
+                    onInit: function() {
+                    },
+                    width: 400,
+                    onPop: function() {
+                    }
+                };
+                var term = $('<div/>').terminal($.noop, options);
+                it('should return option', function() {
+                    Object.keys(options).forEach(function(name) {
+                        expect(term.option(name)).toEqual(options[name]);
+                    });
+                });
+                it('should set single value', function() {
+                    expect(term.option('prompt')).toEqual('$ ');
+                    term.option('prompt', '>>> ');
+                    expect(term.option('prompt')).toEqual('>>> ');
+                });
+                it('should set object', function() {
+                    var options = {
+                        prompt: '# ',
+                        onInit: function() {
+                            console.log('onInit');
+                        }
+                    };
+                    term.option(options);
+                    Object.keys(options).forEach(function(name) {
+                        expect(term.option(name)).toEqual(options[name]);
+                    });
+                });
+            });
+            describe('level', function() {
+                var term = $('<div/>').terminal();
+                it('should return proper level name', function() {
+                    expect(term.level()).toEqual(1);
+                    term.push($.noop);
+                    term.push($.noop);
+                    expect(term.level()).toEqual(3);
+                    term.pop();
+                    expect(term.level()).toEqual(2);
+                });
+            });
+            describe('reset', function() {
+                var interpreter = function(command) {
+                };
+                var greetings = 'Hello';
+                var term = $('<div/>').terminal(interpreter, {
+                    prompt: '1> ',
+                    greetings: greetings
+                });
+                it('should reset all interpreters', function() {
+                    term.push($.noop, {prompt: '2> '});
+                    term.push($.noop, {prompt: '3> '});
+                    term.push($.noop, {prompt: '4> '});
+                    expect(term.level()).toEqual(4);
+                    term.echo('foo');
+                    term.reset();
+                    expect(term.level()).toEqual(1);
+                    expect(term.get_prompt()).toEqual('1> ');
+                    expect(term.get_output()).toEqual(greetings);
+                });
+            });
+            describe('purge', function() {
+                var token = 'purge_TOKEN';
+                var password = 'password';
+                var username = 'some-user';
+                var term;
+                beforeEach(function() {
+                    term = $('<div/>').terminal($.noop, {
+                        login: function(user, pass, callback) {
+                            callback(token);
+                        },
+                        name: 'purge'
+                    });
+                    if (term.token()) {
+                        term.logout();
+                    }
+                    enter(term, username);
+                    enter(term, password);
+                });
+                afterEach(function() {
+                    term.purge().destroy();
+                });
+                it('should remove login and token', function() {
+                    expect(term.login_name()).toEqual(username);
+                    expect(term.token()).toEqual(token);
+                    term.purge();
+                    expect(term.login_name()).toBeFalsy();
+                    expect(term.token()).toBeFalsy();
+                });
+                it('should remove commands history', function() {
+                    var commands = ['echo "foo"', 'sleep', 'pause'];
+                    commands.forEach(function(command) {
+                        enter(term, command);
+                    });
+                    var history = term.history();
+                    expect(history.data()).toEqual(commands);
+                    term.purge();
+                    expect(history.data()).toEqual([]);
+                });
+            });
+            describe('destroy', function() {
+                var greetings = 'hello world!';
+                var element = '<span>span</span>';
+                var term;
+                var height = 400;
+                var width = 200;
+                beforeEach(function() {
+                    term = $('<div class="foo">' + element + '</div>').terminal($.noop, {
+                        greetings: greetings,
+                        width: width,
+                        height: height
+                    });
+                });
+                it('should remove terminal class', function() {
+                    expect(term.hasClass('terminal')).toBeTruthy();
+                    term.destroy();
+                    expect(term.hasClass('terminal')).toBeFalsy();
+                    expect(term.hasClass('foo')).toBeTruthy();
+                });
+                it('should remove command line and output', function() {
+                    term.destroy();
+                    expect(term.find('.terminal-output').length).toEqual(0);
+                    expect(term.find('.cmd').length).toEqual(0);
+                });
+                it('should leave span that intact', function() {
+                    term.destroy();
+                    expect(term.html()).toEqual(element);
+                });
+            });
+            describe('set_token', function() {
+                var token = 'set_token';
+                var term = $('<div/>').terminal($.noop, {
+                    login: function(user, password, callback) {
+                        callback(token);
+                    }
+                });
+                if (term.token()) {
+                    term.logout();
+                }
+                it('should set token', function() {
+                    expect(term.token()).toBeFalsy();
+                    enter(term, 'user');
+                    enter(term, 'password');
+                    expect(term.token()).toEqual(token);
+                    var newToken = 'set_token_new';
+                    term.set_token(newToken);
+                    expect(term.token()).toEqual(newToken);
+                });
+            });
+            describe('before_cursor', function() {
+                var term = $('<div/>').terminal();
+                var cmd = term.cmd();
+                it('should return word before cursor', function() {
+                    var commands = [
+                        ['foo bar baz', 'baz'],
+                        ['foo "bar baz', '"bar baz'],
+                        ["foo \"bar\" 'baz quux", "'baz quux"],
+                        ['foo "foo \\" bar', '"foo \\" bar']
+                    ];
+                    commands.forEach(function(spec) {
+                        term.set_command(spec[0]);
+                        expect(term.before_cursor(true)).toEqual(spec[1]);
+                    });
+                });
+                it('should return word before cursor when cursor not at the end', function() {
+                    var commands = [
+                        ['foo bar baz', 'b'],
+                        ['foo "bar baz', '"bar b'],
+                        ["foo \"bar\" 'baz quux", "'baz qu"],
+                        ['foo "foo \\" bar', '"foo \\" b']
+                    ];
+                    commands.forEach(function(spec) {
+                        term.set_command(spec[0]);
+                        cmd.position(-2, true);
+                        expect(term.before_cursor(true)).toEqual(spec[1]);
+                    });
+                });
+                it('should return text before cursor', function() {
+                    var command = 'foo bar baz';
+                    term.set_command(command);
+                    expect(term.before_cursor()).toEqual(command);
+                    cmd.position(-2, true);
+                    expect(term.before_cursor()).toEqual('foo bar b');
+                });
+            });
         });
     });
 }

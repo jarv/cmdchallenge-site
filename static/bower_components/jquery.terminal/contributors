@@ -1,0 +1,105 @@
+#!/usr/bin/node
+
+var https = require('https');
+var path = require('path');
+var fs = require('fs');
+var argv = require('optimist').argv;
+
+function split_equal(array, length) {
+    var result = [];
+    var len = array.length;
+    if (len < length) {
+        return array;
+    } else if (length < 0) {
+        throw new Error("split_equal: length can't be negative");
+    }
+    for (var i = 0; i < len; i += length) {
+        result.push(array.slice(i, i + length));
+    }
+    return result;
+}
+
+function get(host, path) {
+    var options = {
+        host: host,
+        path: path,
+        headers: {
+            'User-Agent': 'Node.js'
+        }
+    };
+    if (argv.auth) {
+        options.auth = argv.auth;
+    }
+    return new Promise(function(resolve, reject) {
+        https.get(options, function(res) {
+            if (res.statusCode == 200) {
+                var output = '';
+                res.setEncoding('utf8');
+
+                res.on('data', function (chunk) {
+                    output += chunk;
+                });
+
+                res.on('end', function() {
+                    resolve(JSON.parse(output));
+                });
+            } else if (+res.headers['x-ratelimit-remaining'] == 0) {
+                var date = new Date(+res.headers['x-ratelimit-reset']*1000);
+                reject('Rate limit util ' + date);
+            }
+        });
+    });
+}
+
+
+if (argv.u && argv.r) {
+    var user = argv.u;
+    var repo = argv.r;
+    var path = '/repos/' + user + '/' + repo + '/contributors';
+    get('api.github.com', path + '?per_page=100').then(function(contributors) {
+        return Promise.all(contributors.map(function(contributor) {
+            var path = contributor.url.replace(/https:\/\/[^\/]+/, '');
+            return get('api.github.com', path).then(function(user) {
+                if (user.name || user.login) {
+                    var object = {
+                        name: user.name || user.login
+                    };
+                    if (user.email) {
+                        object.email = user.email;
+                    }
+                    if (user.blog) {
+                        object.url = user.blog;
+                    } else {
+                        object.url = "https://github.com/" + user.login
+                    }
+                    if (argv.m) {
+                        object.avatar = contributor.avatar_url;
+                        object.login = user.login;
+                    }
+                    return object;
+                }
+            });
+        }).filter(Boolean));
+    }).then(function(contributors) {
+        if (argv.m) {
+            var align = '| :---: | :---: | :---: | :---: | :---: | :---: | :---: |';
+            var rows = split_equal(contributors, 7).map(function(list) {
+                return '| ' + list.map(function(contributor) {
+                    return '[<img src="' + contributor.avatar + '" width="100px;"/>' +
+                        '<br /><sub>' + contributor.name + '</sub>](' +
+                        contributor.url + ')<br>[commits](https://github.com/jcubic' +
+                        '/jquery.terminal/commits?author=' + contributor.login + ')';
+                }).join(' | ') + ' |';
+            });
+            rows.splice(1, 0, align);
+            console.log(rows.join('\n'));
+        } else {
+            console.log(JSON.stringify(contributors, null, 4));
+        }
+    }).catch(function(error) {
+        console.log('ERROR: ' + error);
+    });
+} else {
+    console.log('usage: \n' + path.basename(process.argv[1]) + '-u <user> -r <repo> ' +
+                '[--auth githubUsername:githubPassword] [-m]');
+}

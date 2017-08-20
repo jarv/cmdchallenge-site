@@ -6,10 +6,11 @@
  * \___//____ \\___//____//_/ _\_  / /_//____//_/ /_/ /_//_//_/ /_/ \__\_\___/
  *           \/              /____/
  * Example plugin using JQuery Terminal Emulator
- * Copyright (c) 2014-2017 Jakub Jankiewicz <http://jcubic.pl>
+ * Copyright (c) 2014-2017 Jakub Jankiewicz <http://jcubic.pl/me>
  * Released under the MIT license
  *
  */
+/* global jQuery */
 (function($) {
     $.extend_if_has = function(desc, source, array) {
         for (var i = array.length; i--;) {
