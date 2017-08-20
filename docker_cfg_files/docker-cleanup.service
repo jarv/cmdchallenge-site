@@ -3,4 +3,4 @@ Description=Cleans up docker images
 
 [Service]
 Type=oneshot
-ExecStart=/bin/sh -c '/bin/docker ps -f status=exited -q | /bin/xargs -r docker rm; docker ps --filter status=dead --filter status=exited -aq | xargs -r docker rm -v'
+ExecStart=/bin/sh -c '/bin/docker ps -f status=exited -q | /bin/xargs -r docker rm; docker ps --filter status=dead --filter status=exited -aq | xargs -r docker rm -v; docker ps | grep -P 'Up \d\d minutes' | awk '{print $1}' | xargs -r docker rm -f'
