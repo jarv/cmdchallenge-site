@@ -3,20 +3,24 @@ variable "commands_table_name" {}
 variable "ec2_public_dns" {}
 variable "code_base64" {}
 variable "code_fname" {}
+variable "ws_name" {}
+variable "is_prod" {}
+
 resource "aws_lambda_function" "runcmd_lambda" {
-  filename = "${var.code_fname}"
+  filename         = "${var.code_fname}"
   source_code_hash = "${var.code_base64}"
-  function_name = "runcmd-lambda-${terraform.env}"
-  role = "${aws_iam_role.runcmd_iam_role.arn}"
-  description = "Lambda function for runcmd - Managed by Terraform"
-  handler = "runcmd.handler"
-  runtime = "python2.7"
-  timeout = "20"
+  function_name    = "runcmd-lambda-${var.ws_name}"
+  role             = "${aws_iam_role.runcmd_iam_role.arn}"
+  description      = "Lambda function for runcmd - Managed by Terraform"
+  handler          = "runcmd.handler"
+  runtime          = "python2.7"
+  timeout          = "20"
+
   environment {
     variables = {
       SUBMISSIONS_TABLE_NAME = "${var.submissions_table_name}"
-      COMMANDS_TABLE_NAME = "${var.commands_table_name}"
-      DOCKER_EC2_DNS = "${var.ec2_public_dns}"
+      COMMANDS_TABLE_NAME    = "${var.commands_table_name}"
+      DOCKER_EC2_DNS         = "${var.ec2_public_dns}"
     }
   }
 }
@@ -33,7 +37,7 @@ data "aws_iam_policy_document" "lambda_assume_role_policy" {
 }
 
 resource "aws_iam_policy" "runcmd_iam_policy" {
-  name   = "runcmd_iam_policy-${terraform.env}"
+  name   = "runcmd_iam_policy-${var.ws_name}"
   path   = "/"
   policy = "${data.aws_iam_policy_document.runcmd_policy_document.json}"
 }
@@ -43,44 +47,54 @@ resource "aws_iam_role" "runcmd_iam_role" {
 }
 
 resource "aws_iam_role_policy_attachment" "runcmd_iam_attach" {
-    role       = "${aws_iam_role.runcmd_iam_role.name}"
-    policy_arn = "${aws_iam_policy.runcmd_iam_policy.arn}"
+  role       = "${aws_iam_role.runcmd_iam_role.name}"
+  policy_arn = "${aws_iam_policy.runcmd_iam_policy.arn}"
 }
 
 data "aws_iam_policy_document" "runcmd_policy_document" {
   statement {
     sid = "1"
+
     actions = [
-      "logs:*"
+      "logs:*",
     ]
+
     resources = [
-      "arn:aws:logs:*:*:*"
+      "arn:aws:logs:*:*:*",
     ]
   }
+
   statement {
     actions = [
-      "dynamodb:*"
+      "dynamodb:*",
     ]
+
     resources = [
-      "arn:aws:dynamodb:us-east-1:*:table/${var.submissions_table_name}"
+      "arn:aws:dynamodb:us-east-1:*:table/${var.submissions_table_name}",
     ]
   }
+
   statement {
     actions = [
-      "dynamodb:*"
+      "dynamodb:*",
     ]
+
     resources = [
-      "arn:aws:dynamodb:us-east-1:*:table/${var.commands_table_name}"
+      "arn:aws:dynamodb:us-east-1:*:table/${var.commands_table_name}",
     ]
   }
+
   statement {
     actions = [
-      "sns:*"
+      "sns:*",
     ]
+
     resources = [
-      "arn:aws:sns:*:*:*"
+      "arn:aws:sns:*:*:*",
     ]
   }
 }
 
-output "arn" { value = "${aws_lambda_function.runcmd_lambda.arn}" }
+output "arn" {
+  value = "${aws_lambda_function.runcmd_lambda.arn}"
+}

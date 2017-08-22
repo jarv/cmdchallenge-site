@@ -1,9 +1,11 @@
-variable "region"       {}
-variable "account_id"   {}
-variable "lambda_arn"   {}
+variable "region" {}
+variable "account_id" {}
+variable "lambda_arn" {}
+variable "ws_name" {}
+variable "is_prod" {}
 
 resource "aws_api_gateway_rest_api" "runcmd_api" {
-  name = "runcmd-api-${terraform.env}"
+  name = "runcmd-api-${var.ws_name}"
 }
 
 resource "aws_api_gateway_method" "method" {
@@ -28,20 +30,24 @@ resource "aws_lambda_permission" "apigw_lambda" {
   action        = "lambda:InvokeFunction"
   function_name = "${var.lambda_arn}"
   principal     = "apigateway.amazonaws.com"
-  source_arn = "arn:aws:execute-api:${var.region}:${var.account_id}:${aws_api_gateway_rest_api.runcmd_api.id}/*/${aws_api_gateway_method.method.http_method}/"
+  source_arn    = "arn:aws:execute-api:${var.region}:${var.account_id}:${aws_api_gateway_rest_api.runcmd_api.id}/*/${aws_api_gateway_method.method.http_method}/"
 }
 
 resource "aws_api_gateway_deployment" "runcmd_deploy" {
-  depends_on = ["aws_api_gateway_integration.integration"]
+  depends_on  = ["aws_api_gateway_integration.integration"]
   rest_api_id = "${aws_api_gateway_rest_api.runcmd_api.id}"
-  stage_name = "prod"
+  stage_name  = "prod"
+
   provisioner "local-exec" {
-    command = "echo ${aws_api_gateway_deployment.runcmd_deploy.invoke_url} > ${path.root}/${terraform.env}-runcmd-api-gateway-endpoint"
+    command = "echo ${aws_api_gateway_deployment.runcmd_deploy.invoke_url} > ${path.root}/${var.ws_name}-runcmd-api-gateway-endpoint"
   }
+
   provisioner "local-exec" {
-    when = "destroy"
-    command = "rm -f ${path.root}/${terraform.env}-runcmd-api-gateway-endpoint"
+    when    = "destroy"
+    command = "rm -f ${path.root}/${var.ws_name}-runcmd-api-gateway-endpoint"
   }
 }
 
-output "invoke_url" { value = "${aws_api_gateway_deployment.runcmd_deploy.invoke_url}" }
+output "invoke_url" {
+  value = "${aws_api_gateway_deployment.runcmd_deploy.invoke_url}"
+}

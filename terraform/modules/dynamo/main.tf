@@ -1,5 +1,8 @@
+variable "ws_name" {}
+variable "is_prod" {}
+
 resource "aws_dynamodb_table" "runcmd_commands" {
-  name           = "${terraform.env == "prod" ? "commands" : "runcmd-commands-${terraform.env}"}"
+  name           = "${var.is_prod == "yes" ? "commands" : "runcmd-commands-${var.ws_name}"}"
   read_capacity  = 1
   write_capacity = 1
   hash_key       = "id"
@@ -20,25 +23,27 @@ resource "aws_dynamodb_table" "runcmd_commands" {
   }
 
   global_secondary_index {
-    name               = "challenge_slug-correct_length-index"
-    hash_key           = "challenge_slug"
-    range_key          = "correct_length"
-    write_capacity     = 1
-    read_capacity      = "${terraform.env == "prod" ? 20 : 1}"
-    projection_type    = "ALL"
+    name            = "challenge_slug-correct_length-index"
+    hash_key        = "challenge_slug"
+    range_key       = "correct_length"
+    write_capacity  = 1
+    read_capacity   = "${var.is_prod == "yes" ? 20 : 1}"
+    projection_type = "ALL"
   }
 
   tags {
     Name        = "dynamodb-table-commands"
-    Environment = "${terraform.env}"
+    Environment = "${var.ws_name}"
   }
 }
+
 resource "aws_dynamodb_table" "runcmd_submissions" {
-  name           = "${terraform.env == "prod" ? "submissions" : "runcmd-submissions-${terraform.env}"}"
+  name           = "${var.is_prod == "yes" ? "submissions" : "runcmd-submissions-${var.ws_name}"}"
   read_capacity  = 1
   write_capacity = 1
   hash_key       = "source_ip"
   range_key      = "create_time"
+
   attribute {
     name = "source_ip"
     type = "S"
@@ -51,8 +56,14 @@ resource "aws_dynamodb_table" "runcmd_submissions" {
 
   tags {
     Name        = "dynamodb-table-submissions"
-    Environment = "${terraform.env}"
+    Environment = "${var.ws_name}"
   }
 }
-output "submissions_table_name" { value = "${aws_dynamodb_table.runcmd_submissions.name}" }
-output "commands_table_name" { value = "${aws_dynamodb_table.runcmd_commands.name}" }
+
+output "submissions_table_name" {
+  value = "${aws_dynamodb_table.runcmd_submissions.name}"
+}
+
+output "commands_table_name" {
+  value = "${aws_dynamodb_table.runcmd_commands.name}"
+}
