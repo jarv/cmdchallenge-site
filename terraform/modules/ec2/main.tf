@@ -31,6 +31,10 @@ resource "aws_key_pair" "cmdchallenge" {
 
 resource "aws_instance" "runcmd" {
   # ami           = "${data.aws_ami.coreos.id}"
+  lifecycle {
+    create_before_destroy = true
+  }
+
   ami             = "ami-ad593cbb"
   instance_type   = "t2.micro"
   security_groups = ["${aws_security_group.runcmd.name}"]

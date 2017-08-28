@@ -17,7 +17,7 @@ output "ec2_public_ip" {
 data "null_data_source" "ws_data" {
   inputs = {
     ws_name = "${terraform.env}"
-    is_prod = "${terraform.env == "prod" || terraform.env == "prod-alt" ? "yes" : "no"}"
+    is_prod = "${terraform.workspace == "prod" || terraform.env == "prod-blue" || terraform.workspace == "prod-green" ? "yes" : "no"}"
   }
 }
 
