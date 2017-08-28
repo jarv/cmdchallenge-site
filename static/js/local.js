@@ -20,7 +20,7 @@ var BADGE_MSGS = {
   b2: "You have a shrug-man, this means you are doing well!",
   b3: "On your way to becoming a super-duper commandline hacker.",
   b4: "Wow, not many have gotten this far... don't stop!",
-  b5: "I impressed at how far you have gotten... keep at it!",
+  b5: "I'm impressed at how far you have gotten... keep at it!",
   b6: "You are officially a command line master, great job!",
 };
 
