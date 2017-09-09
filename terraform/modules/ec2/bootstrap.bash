@@ -19,9 +19,13 @@ sudo mv $DIR/runcmd/docker_cfg_files/swap.service /etc/systemd/system/swap.servi
 sudo systemctl daemon-reload
 sudo systemctl enable --now /etc/systemd/system/swap.service
 sudo systemctl enable docker-tls-tcp.socket
+sudo systemctl enable docker-cleanup.timer
 sudo systemctl restart docker-cleanup.timer
 sudo systemctl stop docker
 sudo systemctl start docker-tls-tcp.socket
 sudo systemctl start docker
+sudo systemctl stop update-engine
+sudo systemctl disable update-engine
+
 docker pull registry.gitlab.com/jarv/cmdchallenge
 # sudo reboot
