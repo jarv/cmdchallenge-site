@@ -14,9 +14,10 @@ validate:
   script: |
     #!/bin/bash
     tf_opts="-check-variables=false"
+    cd terraform
     /usr/local/bin/terraform init -backend=false
-    dirs_to_check=$(find modules "terraform" -name "*.tf" -type f -exec dirname {} \; | sort | uniq)
-    /bin/sh -e -c 'for d in $0; do echo "Checking $d " && /terraform validate $1 "$d"; done' "$dirs_to_check" "$tf_opts"
+    dirs_to_check=$(find . -name "*.tf" -type f -exec dirname {} \; | sort | uniq)
+    /bin/sh -e -c 'for d in $0; do echo "Checking $d " && /usr/local/bin/terraform validate $1 "$d"; done' "$dirs_to_check" "$tf_opts"
 
 plan:
   image: registry.gitlab.com/jarv/cmdchallenge/ci-image
@@ -24,7 +25,10 @@ plan:
   script: |
     #!/bin/bash
     cd terraform
-    /usr/local/bin/terraform init -input=false -backend-config="bucket=${STATE_S3_BUCKET}" -backend-config="key=${STATE_S3_KEY}" -backend-config="region=${STATE_S3_REGION}"
+    echo $(pwd)
+    # echo Will run - /usr/local/bin/terraform init -input=false -backend-config="bucket=${STATE_S3_BUCKET}" -backend-config="key=${STATE_S3_KEY}" -backend-config="region=${STATE_S3_REGION}"
+    # /usr/local/bin/terraform init -input=false -backend-config="bucket=${STATE_S3_BUCKET}" -backend-config="key=${STATE_S3_KEY}" -backend-config="region=${STATE_S3_REGION}"
+    /usr/local/bin/terraform init
     /usr/local/bin/terraform workspace list
     /usr/local/bin/terraform workspace select prod
     /usr/local/bin/terraform plan -input=false
