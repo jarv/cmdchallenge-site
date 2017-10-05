@@ -1,3 +1,12 @@
+terraform {
+  backend "s3" {
+    bucket  = "terraform-cmdchallenge"
+    region  = "us-east-1"
+    profile = "cmdchallenge-cicd"
+    key     = "cicd"
+  }
+}
+
 output "invoke_url" {
   value = "${module.api.invoke_url}"
 }
@@ -24,7 +33,7 @@ data "null_data_source" "ws_data" {
 provider "aws" {
   region                  = "us-east-1"
   shared_credentials_file = "${pathexpand("~/.aws/credentials")}"
-  profile                 = "cmdchallenge"
+  profile                 = "cmdchallenge-cicd"
 }
 
 data "aws_region" "current" {
@@ -57,7 +66,7 @@ data "archive_file" "lambda_runcmd_zip" {
 }
 
 module "dynamo" {
-  source = "./modules/dynamo"
+  source  = "./modules/dynamo"
   ws_name = "${data.null_data_source.ws_data.inputs["ws_name"]}"
   is_prod = "${data.null_data_source.ws_data.inputs["is_prod"]}"
 }
@@ -67,8 +76,8 @@ module "api" {
   region     = "${data.aws_region.current.name}"
   account_id = "${data.aws_caller_identity.current.account_id}"
   lambda_arn = "${module.lambda.arn}"
-  ws_name     = "${data.null_data_source.ws_data.inputs["ws_name"]}"
-  is_prod = "${data.null_data_source.ws_data.inputs["is_prod"]}"
+  ws_name    = "${data.null_data_source.ws_data.inputs["ws_name"]}"
+  is_prod    = "${data.null_data_source.ws_data.inputs["is_prod"]}"
 }
 
 module "lambda" {
@@ -78,12 +87,12 @@ module "lambda" {
   ec2_public_dns         = "${module.ec2.public_dns}"
   code_base64            = "${data.archive_file.lambda_runcmd_zip.output_base64sha256}"
   code_fname             = "${data.archive_file.lambda_runcmd_zip.output_path}"
-  ws_name                 = "${data.null_data_source.ws_data.inputs["ws_name"]}"
-  is_prod = "${data.null_data_source.ws_data.inputs["is_prod"]}"
+  ws_name                = "${data.null_data_source.ws_data.inputs["ws_name"]}"
+  is_prod                = "${data.null_data_source.ws_data.inputs["is_prod"]}"
 }
 
 module "ec2" {
-  source = "./modules/ec2"
+  source  = "./modules/ec2"
   ws_name = "${data.null_data_source.ws_data.inputs["ws_name"]}"
   is_prod = "${data.null_data_source.ws_data.inputs["is_prod"]}"
 }
