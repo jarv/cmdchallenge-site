@@ -1,0 +1,30 @@
+stages:
+  - validate
+  - plan
+
+before_script:
+  - docker info
+  - terraform -version
+
+validate:
+  image: registry.gitlab.com/jarv/cmdchallenge/ci-image
+  stage: validate
+  # Validate every directory that contains terraform config
+  # (`terraform validate` does not do a full recurse)
+  script: |
+    #!/bin/bash
+    tf_opts="-check-variables=false"
+    /usr/local/bin/terraform init -backend=false
+    dirs_to_check=$(find modules "terraform" -name "*.tf" -type f -exec dirname {} \; | sort | uniq)
+    /bin/sh -e -c 'for d in $0; do echo "Checking $d " && /terraform validate $1 "$d"; done' "$dirs_to_check" "$tf_opts"
+
+plan:
+  image: registry.gitlab.com/jarv/cmdchallenge/ci-image
+  stage: plan
+  script: |
+    #!/bin/bash
+    cd terraform
+    /usr/local/bin/terraform init -input=false -backend-config="bucket=${STATE_S3_BUCKET}" -backend-config="key=${STATE_S3_KEY}" -backend-config="region=${STATE_S3_REGION}"
+    /usr/local/bin/terraform workspace list
+    /usr/local/bin/terraform workspace select prod
+    /usr/local/bin/terraform plan -input=false
