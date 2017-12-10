@@ -26,7 +26,7 @@ output "ec2_public_ip" {
 data "null_data_source" "ws_data" {
   inputs = {
     ws_name = "${terraform.env}"
-    is_prod = "${terraform.workspace == "prod" || terraform.env == "prod-blue" || terraform.workspace == "prod-green" ? "yes" : "no"}"
+    is_prod = "${terraform.workspace == "prod" ? "yes" : "no"}"
   }
 }
 
@@ -65,6 +65,13 @@ data "archive_file" "lambda_runcmd_zip" {
   depends_on  = ["null_resource.pre_archive"]
 }
 
+data "archive_file" "lambda_runcmd_cron_zip" {
+  type        = "zip"
+  source_dir  = "../lambda_src/runcmd_cron"
+  output_path = "lambda-runcmd-cron.zip"
+  depends_on  = ["null_resource.pre_archive"]
+}
+
 module "dynamo" {
   source  = "./modules/dynamo"
   ws_name = "${data.null_data_source.ws_data.inputs["ws_name"]}"
@@ -89,6 +96,16 @@ module "lambda" {
   code_fname             = "${data.archive_file.lambda_runcmd_zip.output_path}"
   ws_name                = "${data.null_data_source.ws_data.inputs["ws_name"]}"
   is_prod                = "${data.null_data_source.ws_data.inputs["is_prod"]}"
+}
+
+module "lambda-cron" {
+  source                 = "./modules/lambda-cron"
+  submissions_table_name = "${module.dynamo.submissions_table_name}"
+  commands_table_name    = "${module.dynamo.commands_table_name}"
+  code_base64            = "${data.archive_file.lambda_runcmd_cron_zip.output_base64sha256}"
+  code_fname             = "${data.archive_file.lambda_runcmd_cron_zip.output_path}"
+  ws_name                = "${data.null_data_source.ws_data.inputs["ws_name"]}"
+  bucket_name            = "${terraform.workspace == "prod" ? "cmdchallenge.com" : "testing.cmdchallenge.com"}"
 }
 
 module "ec2" {

@@ -4,6 +4,7 @@ dir=$(dirname $0)
 private_dir="${dir}/../private"
 cmdchallenge_dir="${dir}/../cmdchallenge"
 runcmd_src_dir="${dir}/../lambda_src/runcmd"
+runcmd_cron_src_dir="${dir}/../lambda_src/runcmd_cron"
 
 # common libs
 for f in challenge.py docker_cmd.py; do
@@ -12,6 +13,7 @@ done
 
 # challenge json files
 cp $cmdchallenge_dir/ro_volume/ch/* $runcmd_src_dir/ch/
+cp $cmdchallenge_dir/ro_volume/ch/* $runcmd_cron_src_dir/ch/
 
 # keys
 cp $private_dir/ca/ca.pem $runcmd_src_dir/keys/ca.pem

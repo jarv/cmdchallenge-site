@@ -5,7 +5,6 @@ import hashlib
 import json
 import time
 import boto3
-import random
 import re
 from os import environ
 from cgi import escape
