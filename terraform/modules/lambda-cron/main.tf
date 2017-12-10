@@ -7,14 +7,15 @@ variable "bucket_name" {}
 variable "count" {}
 
 resource "aws_cloudwatch_event_rule" "every_one_day" {
-  name                = "runcmd-lambda-cron-every-one-day-${var.ws_name}"
+  count               = "${var.count}"
+  name                = "runcmd-lambda-cron-every-one-day-${var.ws_name}-${count.index}"
   description         = "Fires every one day"
   schedule_expression = "rate(1 day)"
 }
 
 resource "aws_cloudwatch_event_target" "runcmd_lambda_cron_every_one_day" {
   count     = "${var.count}"
-  rule      = "${aws_cloudwatch_event_rule.every_one_day.name}"
+  rule      = "${aws_cloudwatch_event_rule.every_one_day.*.name[count.index]}"
   target_id = "runcmd_lambda_cron"
   arn       = "${aws_lambda_function.runcmd_lambda_cron.*.arn[count.index]}"
 }
@@ -25,7 +26,7 @@ resource "aws_lambda_permission" "allow_cloudwatch_to_call_runcmd_lambda_cron" {
   action        = "lambda:InvokeFunction"
   function_name = "${aws_lambda_function.runcmd_lambda_cron.*.function_name[count.index]}"
   principal     = "events.amazonaws.com"
-  source_arn    = "${aws_cloudwatch_event_rule.every_one_day.arn}"
+  source_arn    = "${aws_cloudwatch_event_rule.every_one_day.*.arn[count.index]}"
 }
 
 resource "aws_lambda_function" "runcmd_lambda_cron" {
