@@ -100,6 +100,7 @@ module "lambda" {
 
 module "lambda-cron" {
   source                 = "./modules/lambda-cron"
+  count                  = 10
   submissions_table_name = "${module.dynamo.submissions_table_name}"
   commands_table_name    = "${module.dynamo.commands_table_name}"
   code_base64            = "${data.archive_file.lambda_runcmd_cron_zip.output_base64sha256}"

@@ -12,7 +12,17 @@ KEY_PREFIX = "s/solutions"
 COMMANDS_TABLE_NAME = environ.get('COMMANDS_TABLE_NAME', 'commands')
 SUBMISSIONS_TABLE_NAME = environ.get('SUBMISSIONS_TABLE_NAME', 'submissions')
 BUCKET_NAME = environ.get('BUCKET_NAME', 'testing.cmdchallenge.com')
+COUNT_INDEX = int(environ.get('COUNT_INDEX'))
+COUNT = int(environ.get('COUNT'))
 
+def slug_slice(slugs):
+    last_slug_index = len(slugs) - 1
+    start_index = (last_slug_index * COUNT_INDEX) / COUNT
+    if (COUNT_INDEX + 1) == COUNT:
+        end_index = len(slugs)
+    else:
+        end_index = (last_slug_index * (COUNT_INDEX + 1)) / COUNT
+    return slugs[start_index:end_index]
 
 def handler(event, context):
     cmds = set()
@@ -21,7 +31,7 @@ def handler(event, context):
     table = boto3.resource('dynamodb').Table(COMMANDS_TABLE_NAME)
     s3 = boto3.client('s3')
 
-    for slug_name in slugs:
+    for slug_name in slug_slice(slugs):
         resp = table.query(IndexName='challenge_slug-correct_length-index',
                            KeyConditionExpression=Key('challenge_slug').eq(slug_name) & Key('correct_length').lt(20000000000),
                            ScanIndexForward=True)
