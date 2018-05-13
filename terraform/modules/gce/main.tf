@@ -54,7 +54,7 @@ resource "google_compute_instance" "cmdchallenge" {
   connection {
     type        = "ssh"
     user        = "jarv"
-    timeout     = "5m"
+    timeout     = "10m"
     private_key = "${file("${path.root}/../private/ssh/cmd_rsa")}"
   }
 
@@ -72,14 +72,6 @@ resource "google_compute_instance" "cmdchallenge" {
   provisioner "file" {
     source      = "${path.root}/../docker_cfg_files"
     destination = "runcmd"
-  }
-
-  provisioner "local-exec" {
-    command = "${path.root}/../bin/create-ca-keys"
-  }
-
-  provisioner "local-exec" {
-    command = "${path.root}/../bin/create-client-keys"
   }
 
   provisioner "local-exec" {
