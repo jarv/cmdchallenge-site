@@ -108,7 +108,3 @@ make serve
 ```
 
 Point your browser to http://localhost:8000/
-
-
-
-
