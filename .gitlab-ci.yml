@@ -1,6 +1,7 @@
 stages:
   - validate
   - plan
+  - deploy
 
 before_script:
   - docker info
@@ -29,9 +30,21 @@ plan:
     echo $GCP_KEY | base64 -d > private/google/cmdchallenge.json
     cd terraform
     echo $(pwd)
-    # echo Will run - /usr/local/bin/terraform init -input=false -backend-config="bucket=${STATE_S3_BUCKET}" -backend-config="key=${STATE_S3_KEY}" -backend-config="region=${STATE_S3_REGION}"
-    # /usr/local/bin/terraform init -input=false -backend-config="bucket=${STATE_S3_BUCKET}" -backend-config="key=${STATE_S3_KEY}" -backend-config="region=${STATE_S3_REGION}"
     /usr/local/bin/terraform init
     /usr/local/bin/terraform workspace list
     /usr/local/bin/terraform workspace select prod
     /usr/local/bin/terraform plan -input=false
+
+deploy:
+  image: registry.gitlab.com/jarv/cmdchallenge/ci-image
+  stage: deploy
+  script: |
+    ./bin/create-ssh-keys
+    mkdir -p private/google
+    echo $GCP_KEY | base64 -d > private/google/cmdchallenge.json
+    cd terraform
+    echo $(pwd)
+    /usr/local/bin/terraform init
+    /usr/local/bin/terraform workspace list
+    /usr/local/bin/terraform workspace select prod
+    /usr/local/bin/terraform apply -auto-approve -input=false  -var=timestamp=$(date '+%Y%m%d%s')
