@@ -54,7 +54,7 @@ resource "google_compute_instance" "cmdchallenge" {
   connection {
     type        = "ssh"
     user        = "jarv"
-    timeout     = "5m"
+    timeout     = "10m"
     private_key = "${file("${path.root}/../private/ssh/cmd_rsa")}"
   }
 
