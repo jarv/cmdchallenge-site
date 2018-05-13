@@ -4,6 +4,7 @@ stages:
   - deploy
 
 before_script:
+  - git submodule update --init --recursive
   - docker info
   - terraform -version
 
@@ -14,6 +15,7 @@ validate:
   # (`terraform validate` does not do a full recurse)
   script: |
     #!/bin/bash
+    set -x
     tf_opts="-check-variables=false"
     cd terraform
     /usr/local/bin/terraform init -backend=false
@@ -25,6 +27,7 @@ plan:
   stage: plan
   script: |
     #!/bin/bash
+    set -x
     ./bin/create-ssh-keys
     mkdir -p private/google
     echo $GCP_KEY | base64 -d > private/google/cmdchallenge.json
@@ -39,6 +42,8 @@ deploy:
   image: registry.gitlab.com/jarv/cmdchallenge/ci-image
   stage: deploy
   script: |
+    #!/bin/bash
+    set -x
     ./bin/create-ssh-keys
     mkdir -p private/google
     mkdir -p private/ssh
