@@ -1,8 +1,10 @@
 stages:
   - validate
   - plan
+  - deploy
 
 before_script:
+  - git submodule update --init --recursive
   - docker info
   - terraform -version
 
@@ -13,6 +15,7 @@ validate:
   # (`terraform validate` does not do a full recurse)
   script: |
     #!/bin/bash
+    set -x
     tf_opts="-check-variables=false"
     cd terraform
     /usr/local/bin/terraform init -backend=false
@@ -24,14 +27,38 @@ plan:
   stage: plan
   script: |
     #!/bin/bash
+    set -x
     ./bin/create-ssh-keys
     mkdir -p private/google
     echo $GCP_KEY | base64 -d > private/google/cmdchallenge.json
     cd terraform
     echo $(pwd)
-    # echo Will run - /usr/local/bin/terraform init -input=false -backend-config="bucket=${STATE_S3_BUCKET}" -backend-config="key=${STATE_S3_KEY}" -backend-config="region=${STATE_S3_REGION}"
-    # /usr/local/bin/terraform init -input=false -backend-config="bucket=${STATE_S3_BUCKET}" -backend-config="key=${STATE_S3_KEY}" -backend-config="region=${STATE_S3_REGION}"
     /usr/local/bin/terraform init
     /usr/local/bin/terraform workspace list
     /usr/local/bin/terraform workspace select prod
     /usr/local/bin/terraform plan -input=false
+
+deploy:
+  image: registry.gitlab.com/jarv/cmdchallenge/ci-image
+  stage: deploy
+  script: |
+    #!/bin/bash
+    set -x
+    ./bin/create-ssh-keys
+    mkdir -p private/google
+    mkdir -p private/ssh
+    mkdir -p private/ca
+    mkdir -p private/client
+    echo $GCP_KEY | base64 -d > private/google/cmdchallenge.json
+    echo $CMD_RSA | base64 -d > private/ssh/cmd_rsa
+    echo $CA_PEM | base64 -d > private/ca/ca.pem
+    echo $CA_KEY_PEM | base64 -d > private/ca/ca-key.pem
+    echo $CLIENT_CERT_PEM | base64 -d > private/client/cert.pem
+    echo $CLIENT_KEY_PEM | base64 -d > private/client/key.pem
+    cd terraform
+    echo $(pwd)
+    /usr/local/bin/terraform init
+    /usr/local/bin/terraform workspace list
+    /usr/local/bin/terraform workspace select prod
+    /usr/local/bin/terraform taint null_resource.pre_archive
+    /usr/local/bin/terraform apply -auto-approve -input=false  -var=timestamp=$(date '+%Y%m%d%s')
