@@ -1,3 +1,7 @@
+variable "timestamp" {
+  default = "none"
+}
+
 terraform {
   backend "s3" {
     bucket  = "terraform-cmdchallenge"
@@ -15,14 +19,6 @@ output "test_hello_world" {
   value = "curl '${module.api.invoke_url}/?cmd=echo+hello+world&challenge_slug=hello_world'"
 }
 
-output "ami_id" {
-  value = "${module.ec2.coreos_ami_id}"
-}
-
-output "ec2_public_ip" {
-  value = "${module.ec2.public_ip}"
-}
-
 data "null_data_source" "ws_data" {
   inputs = {
     ws_name = "${terraform.env}"
@@ -34,6 +30,12 @@ provider "aws" {
   region                  = "us-east-1"
   shared_credentials_file = "${pathexpand("~/.aws/credentials")}"
   profile                 = "cmdchallenge-cicd"
+}
+
+provider "google" {
+  credentials = "${file("../private/google/cmdchallenge.json")}"
+  project     = "cmdchallenge-1"
+  region      = "us-east1"
 }
 
 data "aws_region" "current" {
@@ -91,11 +93,12 @@ module "lambda" {
   source                 = "./modules/lambda"
   submissions_table_name = "${module.dynamo.submissions_table_name}"
   commands_table_name    = "${module.dynamo.commands_table_name}"
-  ec2_public_dns         = "${module.ec2.public_dns}"
-  code_base64            = "${data.archive_file.lambda_runcmd_zip.output_base64sha256}"
-  code_fname             = "${data.archive_file.lambda_runcmd_zip.output_path}"
-  ws_name                = "${data.null_data_source.ws_data.inputs["ws_name"]}"
-  is_prod                = "${data.null_data_source.ws_data.inputs["is_prod"]}"
+
+  ec2_public_dns = "${module.gce.public_dns}"
+  code_base64    = "${data.archive_file.lambda_runcmd_zip.output_base64sha256}"
+  code_fname     = "${data.archive_file.lambda_runcmd_zip.output_path}"
+  ws_name        = "${data.null_data_source.ws_data.inputs["ws_name"]}"
+  is_prod        = "${data.null_data_source.ws_data.inputs["is_prod"]}"
 }
 
 module "lambda-cron" {
@@ -109,8 +112,7 @@ module "lambda-cron" {
   bucket_name            = "${terraform.workspace == "prod" ? "cmdchallenge.com" : "testing.cmdchallenge.com"}"
 }
 
-module "ec2" {
-  source  = "./modules/ec2"
-  ws_name = "${data.null_data_source.ws_data.inputs["ws_name"]}"
-  is_prod = "${data.null_data_source.ws_data.inputs["is_prod"]}"
+module "gce" {
+  source = "./modules/gce"
+  timestamp = "${var.timestamp}"
 }
