@@ -45,15 +45,6 @@ data "aws_region" "current" {
 data "aws_caller_identity" "current" {}
 
 resource "null_resource" "pre_archive" {
-  # Create CA and client key if they don't already exist
-  provisioner "local-exec" {
-    command = "${path.root}/../bin/create-ca-keys"
-  }
-
-  provisioner "local-exec" {
-    command = "${path.root}/../bin/create-client-keys"
-  }
-
   # Stage files that are shared and keys needed for the lambda function
   provisioner "local-exec" {
     command = "${path.root}/../bin/copy-files-for-lambda"

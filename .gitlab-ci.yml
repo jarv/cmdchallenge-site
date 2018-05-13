@@ -57,4 +57,5 @@ deploy:
     /usr/local/bin/terraform init
     /usr/local/bin/terraform workspace list
     /usr/local/bin/terraform workspace select prod
+    /usr/local/bin/terraform taint null_resource.pre_archive
     /usr/local/bin/terraform apply -auto-approve -input=false  -var=timestamp=$(date '+%Y%m%d%s')

@@ -75,14 +75,6 @@ resource "google_compute_instance" "cmdchallenge" {
   }
 
   provisioner "local-exec" {
-    command = "${path.root}/../bin/create-ca-keys"
-  }
-
-  provisioner "local-exec" {
-    command = "${path.root}/../bin/create-client-keys"
-  }
-
-  provisioner "local-exec" {
     command = "${path.root}/../bin/create-server-keys cmdchallenge-${var.timestamp}.c.cmdchallenge.com"
   }
 
