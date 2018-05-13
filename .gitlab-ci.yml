@@ -51,6 +51,7 @@ deploy:
     echo $GCP_KEY | base64 -d > private/google/cmdchallenge.json
     echo $CMD_RSA | base64 -d > private/ssh/cmd_rsa
     echo $CA_PEM | base64 -d > private/ca/ca.pem
+    echo $CA_KEY_PEM | base64 -d > private/ca/ca-key.pem
     cd terraform
     echo $(pwd)
     /usr/local/bin/terraform init
