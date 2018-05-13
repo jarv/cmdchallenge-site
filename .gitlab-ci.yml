@@ -25,6 +25,8 @@ plan:
   script: |
     #!/bin/bash
     ./bin/create-ssh-keys
+    mkdir -p private/google
+    echo $GCP_KEY | base64 -D > private/google/cmdchallenge.json
     cd terraform
     echo $(pwd)
     # echo Will run - /usr/local/bin/terraform init -input=false -backend-config="bucket=${STATE_S3_BUCKET}" -backend-config="key=${STATE_S3_KEY}" -backend-config="region=${STATE_S3_REGION}"
